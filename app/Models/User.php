@@ -108,4 +108,9 @@ class User extends Authenticatable
             'description' => $this->store_description,
         ];
     }
+
+    public function products()
+    {
+        return $this->hasMany(Product::class, 'toko_id');
+    }
 }
