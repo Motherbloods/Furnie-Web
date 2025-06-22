@@ -23,9 +23,6 @@ class User extends Authenticatable
         'phone',
         'password',
         'role',
-        'store_name',
-        'store_address',
-        'store_description',
     ];
 
     /**
@@ -92,25 +89,56 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the seller profile for the user.
+     */
+    public function seller()
+    {
+        return $this->hasOne(Seller::class);
+    }
+
+    /**
      * Get the user's full store information (for sellers)
      *
      * @return array|null
      */
     public function getStoreInfoAttribute(): ?array
     {
-        if (!$this->isSeller()) {
+        if (!$this->isSeller() || !$this->seller) {
             return null;
         }
 
-        return [
-            'name' => $this->store_name,
-            'address' => $this->store_address,
-            'description' => $this->store_description,
-        ];
+        return $this->seller->store_info;
     }
 
+    /**
+     * Get products through seller relationship
+     */
     public function products()
     {
-        return $this->hasMany(Product::class, 'toko_id');
+        if ($this->isSeller() && $this->seller) {
+            return $this->seller->products();
+        }
+
+        return $this->hasMany(Product::class)->whereNull('id'); // Empty relationship
+    }
+
+    /**
+     * Check if seller is verified (for sellers only)
+     *
+     * @return bool
+     */
+    public function isSellerVerified(): bool
+    {
+        return $this->isSeller() && $this->seller && $this->seller->isVerified();
+    }
+
+    /**
+     * Check if seller is suspended (for sellers only)
+     *
+     * @return bool
+     */
+    public function isSellerSuspended(): bool
+    {
+        return $this->isSeller() && $this->seller && $this->seller->isSuspended();
     }
 }

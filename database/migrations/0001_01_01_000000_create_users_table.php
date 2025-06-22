@@ -18,15 +18,6 @@ return new class extends Migration {
             $table->enum('role', ['user', 'seller', 'admin'])->default('user');
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-
-            // Seller specific fields
-            $table->string('store_name')->nullable();
-            $table->text('store_address')->nullable();
-            $table->text('store_description')->nullable();
-
-            $table->boolean('is_verified')->default(false);
-            $table->boolean('is_suspend')->default(false);
-
             $table->rememberToken();
             $table->timestamps();
 

@@ -4,11 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Seller;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class AuthController extends Controller
 {
@@ -51,22 +53,30 @@ class AuthController extends Controller
 
     protected function create(array $data, $role = 'user')
     {
-        $userData = [
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'phone' => $data['phone'],
-            'password' => Hash::make($data['password']),
-            'role' => $role,
-        ];
+        return DB::transaction(function () use ($data, $role) {
+            // Buat user terlebih dahulu
+            $user = User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'phone' => $data['phone'],
+                'password' => Hash::make($data['password']),
+                'role' => $role,
+            ]);
 
-        // Tambahan data untuk seller
-        if ($role === 'seller') {
-            $userData['store_name'] = $data['store_name'];
-            $userData['store_address'] = $data['store_address'];
-            $userData['store_description'] = $data['store_description'] ?? null;
-        }
+            // Jika role seller, buat data seller
+            if ($role === 'seller') {
+                Seller::create([
+                    'user_id' => $user->id,
+                    'store_name' => $data['store_name'],
+                    'store_address' => $data['store_address'],
+                    'store_description' => $data['store_description'] ?? null,
+                    'is_verified' => false,
+                    'is_suspended' => false,
+                ]);
+            }
 
-        return User::create($userData);
+            return $user;
+        });
     }
 
     public function showLoginForm()
@@ -102,8 +112,15 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
+            // Cek jika seller apakah suspended
+            // if ($user->isSeller() && $user->isSellerSuspended()) {
+            //     Auth::logout();
+            //     return back()->withErrors([
+            //         'email' => 'Akun seller Anda telah dinonaktifkan. Silakan hubungi admin.',
+            //     ])->withInput($request->except('password'));
+            // }
 
-            // Redirect berdasarkan role (admin menggunakan Filament)
+            // Redirect berdasarkan role
             switch ($user->role) {
                 case 'admin':
                     return redirect()->intended('/admin')->with('success', 'Selamat datang, Admin!');
@@ -140,7 +157,7 @@ class AuthController extends Controller
         // Auto login setelah register
         Auth::login($user);
 
-        return redirect('/seller/dashboard')->with('success', 'Akun seller berhasil dibuat! Selamat datang di Furnie.');
+        return redirect('/seller/dashboard')->with('success', 'Akun seller berhasil dibuat! Menunggu verifikasi admin.');
     }
 
     public function logout(Request $request)

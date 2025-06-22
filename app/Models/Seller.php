@@ -1,0 +1,106 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Seller extends Model
+{
+    use HasFactory;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    protected $fillable = [
+        'user_id',
+        'store_name',
+        'store_address',
+        'store_description',
+        'is_verified',
+        'is_suspended',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'is_verified' => 'boolean',
+            'is_suspended' => 'boolean',
+        ];
+    }
+
+    /**
+     * Get the user that owns the seller profile.
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the products for the seller.
+     */
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
+
+    /**
+     * Get the seller's full store information
+     *
+     * @return array
+     */
+    public function getStoreInfoAttribute(): array
+    {
+        return [
+            'name' => $this->store_name,
+            'address' => $this->store_address,
+            'description' => $this->store_description,
+            'is_verified' => $this->is_verified,
+            'is_suspended' => $this->is_suspended,
+        ];
+    }
+
+    /**
+     * Check if seller is verified
+     *
+     * @return bool
+     */
+    public function isVerified(): bool
+    {
+        return $this->is_verified;
+    }
+
+    /**
+     * Check if seller is suspended
+     *
+     * @return bool
+     */
+    public function isSuspended(): bool
+    {
+        return $this->is_suspended;
+    }
+
+    /**
+     * Scope to get only verified sellers
+     */
+    public function scopeVerified($query)
+    {
+        return $query->where('is_verified', true);
+    }
+
+    /**
+     * Scope to get only active (not suspended) sellers
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_suspended', false);
+    }
+}
