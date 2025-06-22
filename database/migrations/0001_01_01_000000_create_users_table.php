@@ -24,6 +24,9 @@ return new class extends Migration {
             $table->text('store_address')->nullable();
             $table->text('store_description')->nullable();
 
+            $table->boolean('is_verified')->default(false);
+            $table->boolean('is_suspend')->default(false);
+
             $table->rememberToken();
             $table->timestamps();
 
