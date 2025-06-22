@@ -76,11 +76,12 @@
                                     class="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-white">
                                 </div>
                             </div>
-                            <div class="flex-1">
-                                <p class="font-bold text-slate-900 text-lg">John Doe</p>
-                                <p class="text-sm text-slate-600">john@example.com</p>
-                                <p class="text-xs text-emerald-600 font-medium">Premium Member</p>
-                            </div>
+                            @auth
+                                <div class="flex-1">
+                                    <p class="font-bold text-slate-900 text-lg"> {{ Auth::user()->name }}</p>
+                                    <p class="text-sm text-slate-600"> {{ Auth::user()->email }}</p>
+                                </div>
+                            @endauth
                         </div>
                     </div>
 
