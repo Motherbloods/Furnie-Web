@@ -22,6 +22,10 @@ class User extends Authenticatable
         'email',
         'phone',
         'password',
+        'role',
+        'store_name',
+        'store_address',
+        'store_description',
     ];
 
     /**
@@ -44,6 +48,64 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+        ];
+    }
+
+    /**
+     * Check if user can access Filament admin panel
+     *
+     * @return bool
+     */
+    public function canAccessFilament(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Check if user is admin
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Check if user is seller
+     *
+     * @return bool
+     */
+    public function isSeller(): bool
+    {
+        return $this->role === 'seller';
+    }
+
+    /**
+     * Check if user is regular user
+     *
+     * @return bool
+     */
+    public function isUser(): bool
+    {
+        return $this->role === 'user';
+    }
+
+    /**
+     * Get the user's full store information (for sellers)
+     *
+     * @return array|null
+     */
+    public function getStoreInfoAttribute(): ?array
+    {
+        if (!$this->isSeller()) {
+            return null;
+        }
+
+        return [
+            'name' => $this->store_name,
+            'address' => $this->store_address,
+            'description' => $this->store_description,
         ];
     }
 }

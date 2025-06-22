@@ -9,17 +9,26 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+
 class AuthController extends Controller
 {
-
-    protected function validator(array $data)
+    protected function validator(array $data, $role = 'user')
     {
-        return Validator::make($data, [
+        $rules = [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
             'phone' => ['required', 'string', 'max:15', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
-        ], [
+        ];
+
+        // Tambahan validasi untuk seller
+        if ($role === 'seller') {
+            $rules['store_name'] = ['required', 'string', 'max:255'];
+            $rules['store_address'] = ['required', 'string', 'max:500'];
+            $rules['store_description'] = ['nullable', 'string', 'max:1000'];
+        }
+
+        $messages = [
             'name.required' => 'Nama lengkap wajib diisi.',
             'name.max' => 'Nama lengkap maksimal 255 karakter.',
             'email.required' => 'Email wajib diisi.',
@@ -30,26 +39,49 @@ class AuthController extends Controller
             'password.required' => 'Password wajib diisi.',
             'password.min' => 'Password minimal 8 karakter.',
             'password.confirmed' => 'Konfirmasi password tidak cocok.',
-        ]);
+            'store_name.required' => 'Nama toko wajib diisi.',
+            'store_name.max' => 'Nama toko maksimal 255 karakter.',
+            'store_address.required' => 'Alamat toko wajib diisi.',
+            'store_address.max' => 'Alamat toko maksimal 500 karakter.',
+            'store_description.max' => 'Deskripsi toko maksimal 1000 karakter.',
+        ];
+
+        return Validator::make($data, $rules, $messages);
     }
 
-    protected function create(array $data)
+    protected function create(array $data, $role = 'user')
     {
-        return User::create([
+        $userData = [
             'name' => $data['name'],
             'email' => $data['email'],
             'phone' => $data['phone'],
             'password' => Hash::make($data['password']),
-        ]);
+            'role' => $role,
+        ];
+
+        // Tambahan data untuk seller
+        if ($role === 'seller') {
+            $userData['store_name'] = $data['store_name'];
+            $userData['store_address'] = $data['store_address'];
+            $userData['store_description'] = $data['store_description'] ?? null;
+        }
+
+        return User::create($userData);
     }
 
-    function showLoginForm()
+    public function showLoginForm()
     {
         return view('auth.login');
     }
-    function showRegistrationForm()
+
+    public function showRegistrationForm()
     {
         return view('auth.register');
+    }
+
+    public function showSellerRegistrationForm()
+    {
+        return view('auth.register-seller');
     }
 
     public function login(Request $request)
@@ -69,7 +101,17 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $request->session()->regenerate();
 
-            return redirect()->intended('/')->with('success', 'Selamat datang kembali!');
+            $user = Auth::user();
+
+            // Redirect berdasarkan role (admin menggunakan Filament)
+            switch ($user->role) {
+                case 'admin':
+                    return redirect()->intended('/admin')->with('success', 'Selamat datang, Admin!');
+                case 'seller':
+                    return redirect()->intended('/seller/dashboard')->with('success', 'Selamat datang kembali, Seller!');
+                default:
+                    return redirect()->intended('/')->with('success', 'Selamat datang kembali!');
+            }
         }
 
         return back()->withErrors([
@@ -79,11 +121,26 @@ class AuthController extends Controller
 
     public function register(Request $request)
     {
-        $this->validator($request->all())->validate();
+        $this->validator($request->all(), 'user')->validate();
 
-        $this->create($request->all());
+        $user = $this->create($request->all(), 'user');
 
-        return redirect('/login')->with('success', 'Akun berhasil dibuat! Selamat datang di Furnie.');
+        // Auto login setelah register
+        Auth::login($user);
+
+        return redirect('/')->with('success', 'Akun berhasil dibuat! Selamat datang di Furnie.');
+    }
+
+    public function registerSeller(Request $request)
+    {
+        $this->validator($request->all(), 'seller')->validate();
+
+        $user = $this->create($request->all(), 'seller');
+
+        // Auto login setelah register
+        Auth::login($user);
+
+        return redirect('/seller/dashboard')->with('success', 'Akun seller berhasil dibuat! Selamat datang di Furnie.');
     }
 
     public function logout(Request $request)
