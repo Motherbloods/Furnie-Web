@@ -163,28 +163,32 @@
                         <!-- Divider -->
                         <div class="my-3 mx-6 border-t border-slate-200/60"></div>
 
-                        <a href="/logout"
-                            class="flex items-center px-6 py-4 text-red-600 hover:bg-red-50/50 transition-all duration-200 group">
-                            <div
-                                class="w-12 h-12 bg-red-100/70 rounded-2xl flex items-center justify-center mr-4 group-hover:bg-red-200/70 transition-all duration-200 group-hover:scale-105">
-                                <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
-                                    </path>
+                        <form action="/logout" method="POST">
+                            @csrf
+                            <button type="submit"
+                                class="w-full text-left flex items-center px-6 py-4 text-red-600 hover:bg-red-50/50 transition-all duration-200 group">
+                                <div
+                                    class="w-12 h-12 bg-red-100/70 rounded-2xl flex items-center justify-center mr-4 group-hover:bg-red-200/70 transition-all duration-200 group-hover:scale-105">
+                                    <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor"
+                                        viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+                                        </path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="font-semibold">Keluar</p>
+                                    <p class="text-xs text-slate-500">Logout dari akun</p>
+                                </div>
+                                <svg class="w-4 h-4 text-slate-400 group-hover:text-red-600 transition-colors"
+                                    fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd"
+                                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                        clip-rule="evenodd"></path>
                                 </svg>
-                            </div>
-                            <div class="flex-1">
-                                <p class="font-semibold">Keluar</p>
-                                <p class="text-xs text-slate-500">Logout dari akun</p>
-                            </div>
-                            <svg class="w-4 h-4 text-slate-400 group-hover:text-red-600 transition-colors"
-                                fill="currentColor" viewBox="0 0 20 20">
-                                <path fill-rule="evenodd"
-                                    d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                    clip-rule="evenodd"></path>
-                            </svg>
-                        </a>
+                            </button>
+                        </form>
+
                     </div>
                 </div>
             </div>
