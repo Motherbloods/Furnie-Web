@@ -97,6 +97,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Get products through seller relationship
+     */
+    public function products()
+    {
+        return $this->hasManyThrough(Product::class, Seller::class);
+    }
+
+    /**
      * Get the user's full store information (for sellers)
      *
      * @return array|null
@@ -108,18 +116,6 @@ class User extends Authenticatable
         }
 
         return $this->seller->store_info;
-    }
-
-    /**
-     * Get products through seller relationship
-     */
-    public function products()
-    {
-        if ($this->isSeller() && $this->seller) {
-            return $this->seller->products();
-        }
-
-        return $this->hasMany(Product::class)->whereNull('id'); // Empty relationship
     }
 
     /**
@@ -140,5 +136,53 @@ class User extends Authenticatable
     public function isSellerSuspended(): bool
     {
         return $this->isSeller() && $this->seller && $this->seller->isSuspended();
+    }
+
+    /**
+     * Check if seller is fully active (verified and not suspended)
+     *
+     * @return bool
+     */
+    public function isSellerActive(): bool
+    {
+        return $this->isSeller() && $this->seller && $this->seller->isActive();
+    }
+
+    /**
+     * Get seller's product count
+     *
+     * @return int
+     */
+    public function getSellerProductCountAttribute(): int
+    {
+        if (!$this->isSeller() || !$this->seller) {
+            return 0;
+        }
+
+        return $this->seller->product_count;
+    }
+
+    /**
+     * Scope to get only seller users
+     */
+    public function scopeSellers($query)
+    {
+        return $query->where('role', 'seller');
+    }
+
+    /**
+     * Scope to get only admin users
+     */
+    public function scopeAdmins($query)
+    {
+        return $query->where('role', 'admin');
+    }
+
+    /**
+     * Scope to get only regular users
+     */
+    public function scopeRegularUsers($query)
+    {
+        return $query->where('role', 'user');
     }
 }

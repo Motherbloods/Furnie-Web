@@ -65,6 +65,7 @@ class Seller extends Model
             'description' => $this->store_description,
             'is_verified' => $this->is_verified,
             'is_suspended' => $this->is_suspended,
+            'user' => $this->user->only(['name', 'email', 'phone']),
         ];
     }
 
@@ -89,6 +90,36 @@ class Seller extends Model
     }
 
     /**
+     * Check if seller is active (verified and not suspended)
+     *
+     * @return bool
+     */
+    public function isActive(): bool
+    {
+        return $this->is_verified && !$this->is_suspended;
+    }
+
+    /**
+     * Get product count for this seller
+     *
+     * @return int
+     */
+    public function getProductCountAttribute(): int
+    {
+        return $this->products()->count();
+    }
+
+    /**
+     * Get active product count for this seller
+     *
+     * @return int
+     */
+    public function getActiveProductCountAttribute(): int
+    {
+        return $this->products()->where('status', 'active')->count();
+    }
+
+    /**
      * Scope to get only verified sellers
      */
     public function scopeVerified($query)
@@ -102,5 +133,14 @@ class Seller extends Model
     public function scopeActive($query)
     {
         return $query->where('is_suspended', false);
+    }
+
+    /**
+     * Scope to get sellers with active status (verified + not suspended)
+     */
+    public function scopeFullyActive($query)
+    {
+        return $query->where('is_verified', true)
+            ->where('is_suspended', false);
     }
 }

@@ -12,7 +12,7 @@ return new class extends Migration {
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('toko_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('seller_id')->constrained('users')->onDelete('cascade');
             $table->string('name');
             $table->enum('kategori', ['meja', 'kursi', 'lemari', 'kasur', 'sofa', 'rak', 'dekorasi']);
             $table->text('description')->nullable();
