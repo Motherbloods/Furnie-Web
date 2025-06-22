@@ -81,9 +81,7 @@ class AuthController extends Controller
     {
         $this->validator($request->all())->validate();
 
-        $user = $this->create($request->all());
-
-        Auth::login($user);
+        $this->create($request->all());
 
         return redirect('/login')->with('success', 'Akun berhasil dibuat! Selamat datang di Furnie.');
     }

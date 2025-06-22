@@ -156,7 +156,7 @@
                                     </path>
                                 </svg>
                             </div>
-                            <input id="phone" name="phone" type="tel" required
+                            <input id="phone" name="phone" type="text" required
                                 class="w-full pl-12 pr-4 py-4 bg-slate-50/50 border border-slate-200/60 rounded-2xl focus:outline-none focus:ring-2 focus:ring-slate-500/20 focus:border-slate-400 transition-all duration-300 text-slate-900 placeholder-slate-500"
                                 placeholder="08123456789" value="{{ old('phone') }}">
                         </div>
