@@ -19,8 +19,20 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/', function () {
-        return view('layouts.dashboard');
+    // Route untuk role:user
+    Route::middleware(['role:user'])->group(function () {
+        Route::get('/', function () {
+            return view('layouts.dashboard');
+        })->name('user.dashboard');
     });
-    Route::post('/logout', [AuthController::class, 'logout']);
+
+    // // Route untuk role:seller
+    Route::middleware(['role:seller'])->group(function () {
+        Route::get('/seller/dashboard', function () {
+            return view('dashboard-seller');
+        })->name('seller.dashboard');
+    });
+
+    // Logout route (semua role bisa akses)
+    Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 });
