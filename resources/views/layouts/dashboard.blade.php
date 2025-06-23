@@ -5,17 +5,26 @@
 @section('content')
 
     <!-- Demo Content -->
-    <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 pt-20">
-        <div class="max-w-4xl mx-auto px-6 py-12">
+    <div class="min-h-screen w-full bg-gradient-to-br from-slate-50 to-slate-100">
+        <!-- Hero Section with Container -->
+        <div class="max-w-4xl mx-auto py-8">
             <div class="text-center">
                 <h1 class="text-4xl font-bold text-slate-900 mb-4">Welcome to Furnie</h1>
                 <p class="text-lg text-slate-600 mb-8">Your premium furniture destination</p>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                <!-- Search Component -->
+                @include('components.search-bar')
+
+                <!-- Categories Component -->
+                @include('components.categories')
+
+                <!-- Features Section -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                     <div class="bg-white/60 backdrop-blur-sm rounded-3xl p-8 shadow-lg border border-slate-200/50">
                         <div class="w-16 h-16 bg-emerald-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                             <svg class="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                                    d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 00-2-2H5a2 2 00-2-2z"></path>
                             </svg>
                         </div>
                         <h3 class="text-xl font-bold text-slate-900 mb-2">Premium Quality</h3>
@@ -45,6 +54,9 @@
                 </div>
             </div>
         </div>
+
+        <!-- Product List Component - Full Width -->
+        @include('components.product-list')
     </div>
 
 @endsection
