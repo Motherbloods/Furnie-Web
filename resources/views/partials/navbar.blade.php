@@ -44,10 +44,12 @@
                             <span class="text-xs text-white font-bold">3</span>
                         </div>
                     </div>
-                    <div class="hidden sm:block text-left">
-                        <p class="text-sm font-semibold text-slate-800">Halo!</p>
-                        <p class="text-xs text-slate-500">User</p>
-                    </div>
+                    @auth
+                        <div class="hidden sm:block text-left">
+                            <p class="text-sm font-semibold text-slate-800">{{ Auth::user()->name }}!</p>
+                            <p class="text-xs text-slate-500">{{ Auth::user()->role }}</p>
+                        </div>
+                    @endauth
                     <svg id="dropdownArrow"
                         class="w-4 h-4 text-slate-400 transition-all duration-300 group-hover:text-slate-600"
                         fill="currentColor" viewBox="0 0 20 20">
@@ -87,31 +89,36 @@
 
                     <!-- Menu Items -->
                     <div class="py-3">
-                        <a href="/keranjang"
-                            class="flex items-center px-6 py-4 text-slate-700 hover:bg-emerald-50/50 hover:text-emerald-700 transition-all duration-200 group">
-                            <div
-                                class="w-12 h-12 bg-emerald-100/70 rounded-2xl flex items-center justify-center mr-4 group-hover:bg-emerald-200/70 transition-all duration-200 group-hover:scale-105">
-                                <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9"></path>
-                                </svg>
-                            </div>
-                            <div class="flex-1">
-                                <p class="font-semibold">Keranjang Belanja</p>
-                                <p class="text-xs text-slate-500">3 items menunggu</p>
-                            </div>
-                            <div class="flex items-center space-x-2">
-                                <span
-                                    class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full">3</span>
-                                <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-colors"
-                                    fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd"
-                                        d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
-                                        clip-rule="evenodd"></path>
-                                </svg>
-                            </div>
-                        </a>
+                        @auth
+                            @if (Auth::user()->role === 'user')
+                                <a href="/keranjang"
+                                    class="flex items-center px-6 py-4 text-slate-700 hover:bg-emerald-50/50 hover:text-emerald-700 transition-all duration-200 group">
+                                    <div
+                                        class="w-12 h-12 bg-emerald-100/70 rounded-2xl flex items-center justify-center mr-4 group-hover:bg-emerald-200/70 transition-all duration-200 group-hover:scale-105">
+                                        <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor"
+                                            viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-1.5 6M7 13l-1.5 6m0 0h9">
+                                            </path>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1">
+                                        <p class="font-semibold">Keranjang Belanja</p>
+                                        <p class="text-xs text-slate-500">3 items menunggu</p>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <span
+                                            class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full">3</span>
+                                        <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-colors"
+                                            fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd"
+                                                d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                                                clip-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                </a>
+                            @endif
+                        @endauth
 
                         <a href="/transaksi"
                             class="flex items-center px-6 py-4 text-slate-700 hover:bg-blue-50/50 hover:text-blue-700 transition-all duration-200 group">
@@ -146,7 +153,8 @@
                                 <svg class="w-6 h-6 text-slate-600" fill="none" stroke="currentColor"
                                     viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                        d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
+                                    </path>
                                 </svg>
                             </div>
                             <div class="flex-1">
