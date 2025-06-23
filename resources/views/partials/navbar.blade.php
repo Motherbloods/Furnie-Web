@@ -30,7 +30,7 @@
             <div class="relative">
                 <!-- Profile Button -->
                 <button id="profileButton"
-                    class="flex items-center space-x-3 bg-slate-50/50 hover:bg-slate-100/70 border border-slate-200/60 px-4 py-3 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-slate-500/20 group backdrop-blur-sm hover:shadow-md">
+                    class="flex items-center space-x-3 bg-slate-50/50 hover:bg-slate-100/70 border border-slate-200/60 px-4 py-3 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-slate-500/20 group backdrop-blur-sm hover:shadow-md cursor-pointer">
                     <div class="relative">
                         <div
                             class="w-10 h-10 bg-gradient-to-br from-slate-700 via-slate-600 to-slate-500 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300">
@@ -132,9 +132,10 @@
                                 </svg>
                             </div>
                             <div class="flex-1">
-                                <p class="font-semibold">Riwayat Transaksi</p>
-                                <p class="text-xs text-slate-500">Lihat pembelian sebelumnya</p>
+                                <p class="font-semibold">Pesanan Saya</p>
+                                <p class="text-xs text-slate-500">Lihat status pesanan Anda</p>
                             </div>
+
                             <svg class="w-4 h-4 text-slate-400 group-hover:text-blue-600 transition-colors"
                                 fill="currentColor" viewBox="0 0 20 20">
                                 <path fill-rule="evenodd"
@@ -175,7 +176,7 @@
                         <form action="/logout" method="POST">
                             @csrf
                             <button type="submit"
-                                class="w-full text-left flex items-center px-6 py-4 text-red-600 hover:bg-red-50/50 transition-all duration-200 group">
+                                class="w-full text-left flex items-center px-6 py-4 text-red-600 hover:bg-red-50/50 transition-all duration-200 group cursor-pointer">
                                 <div
                                     class="w-12 h-12 bg-red-100/70 rounded-2xl flex items-center justify-center mr-4 group-hover:bg-red-200/70 transition-all duration-200 group-hover:scale-105">
                                     <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor"

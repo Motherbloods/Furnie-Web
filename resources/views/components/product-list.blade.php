@@ -15,7 +15,7 @@
         <div class="flex items-center space-x-4">
             <select
                 class="px-4 py-2 bg-white/80 backdrop-blur-sm border border-slate-200/50 rounded-xl 
-                           focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm">
+                           focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm cursor-pointer">
                 <option value="">Urutkan</option>
                 <option value="price_asc">Harga Terendah</option>
                 <option value="price_desc">Harga Tertinggi</option>
@@ -205,7 +205,7 @@
                         <button
                             class="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white 
                                   py-2.5 px-4 rounded-xl font-medium hover:from-blue-700 hover:to-purple-700 
-                                  transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center">
+                                  transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center cursor-pointer">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17M17 13v6a2 2 0 01-2 2H9a2 2 0 01-2-2v-6m8 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v4.01">
@@ -214,7 +214,7 @@
                             Keranjang
                         </button>
                         <button
-                            class="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors flex-shrink-0">
+                            class="p-2.5 bg-slate-100 hover:bg-slate-200 rounded-xl transition-colors flex-shrink-0 cursor-pointer">
                             <svg class="w-5 h-5 text-slate-600" fill="none" stroke="currentColor"
                                 viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -248,7 +248,7 @@
             <button
                 class="px-8 py-3 bg-white/80 backdrop-blur-sm border border-slate-200/50 
                       rounded-xl text-slate-700 font-medium hover:bg-white hover:shadow-lg 
-                      transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-500/20">
+                      transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-blue-500/20 cursor-pointer">
                 <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>

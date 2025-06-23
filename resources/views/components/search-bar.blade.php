@@ -17,7 +17,7 @@
                 class="absolute right-2 top-1/2 transform -translate-y-1/2 px-6 py-2 
                        bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium 
                        rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 
-                       shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20">
+                       shadow-lg hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 cursor-pointer">
                 Cari
             </button>
         </div>
