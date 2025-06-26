@@ -13,11 +13,26 @@ class Product extends Model
         'name',
         'description',
         'price',
+        'original_price',
+        'rating',
+        'reviews',
+        'discount',
         'stock',
         'kategori',
         'status',
         'image',
+        'images',
+        'specifications',
+        'features',
     ];
+
+    protected $casts = [
+        'images' => 'array',
+        'specifications' => 'array',
+        'features' => 'array',
+    ];
+
+
 
     public function seller()
     {
