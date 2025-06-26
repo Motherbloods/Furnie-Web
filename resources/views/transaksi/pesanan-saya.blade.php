@@ -39,11 +39,15 @@
                         </button>
                         <button
                             class="px-6 py-3 bg-white/80 text-slate-700 rounded-2xl font-semibold border border-slate-200 hover:bg-slate-50 transition-all duration-300 hover:scale-105 cursor-pointer">
-                            Menunggu Pembayaran
+                            Menunggu Konfirmasi
                         </button>
                         <button
                             class="px-6 py-3 bg-white/80 text-slate-700 rounded-2xl font-semibold border border-slate-200 hover:bg-slate-50 transition-all duration-300 hover:scale-105 cursor-pointer">
                             Diproses
+                        </button>
+                        <button
+                            class="px-6 py-3 bg-white/80 text-slate-700 rounded-2xl font-semibold border border-slate-200 hover:bg-slate-50 transition-all duration-300 hover:scale-105 cursor-pointer">
+                            Dikirim
                         </button>
                         <button
                             class="px-6 py-3 bg-white/80 text-slate-700 rounded-2xl font-semibold border border-slate-200 hover:bg-slate-50 transition-all duration-300 hover:scale-105 cursor-pointer">
@@ -77,7 +81,7 @@
                                 <div class="flex items-center space-x-3 mb-2">
                                     <h3 class="text-xl font-bold text-slate-900">#FRN-2024-001</h3>
                                     <span class="px-4 py-2 bg-amber-100 text-amber-800 rounded-full text-sm font-semibold">
-                                        Menunggu Pembayaran
+                                        Menunggu Konfirmasi
                                     </span>
                                 </div>
                                 <p class="text-slate-600">Dipesan pada 20 Juni 2025 • 14:30 WIB</p>

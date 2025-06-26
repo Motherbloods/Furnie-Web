@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
+use App\Models\Order;
+use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Midtrans\Snap;
@@ -44,54 +46,26 @@ class CheckoutController extends Controller
         ));
     }
 
-    /**
-     * Process checkout (untuk AJAX request)
-     */
-    public function processCheckout(Request $request)
+    public function updateStatus(Request $request)
     {
-        $validated = $request->validate([
-            'full_name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
-            'address' => 'required|string',
-            'city' => 'required|string|max:100',
-            'province' => 'required|string|max:100',
-            'postal_code' => 'required|string|max:10',
-            'shipping_method' => 'required|in:regular,express,sameday'
+        $request->validate([
+            'order_id' => 'required|string',
+            'status' => 'required|in:paid,cancelled',
         ]);
 
-        $cartItems = Cart::with(['product'])
-            ->forUser(Auth::id())
-            ->get();
+        $order = Order::where('order_id', $request->order_id)->first();
 
-        if ($cartItems->isEmpty()) {
-            return response()->json(['error' => 'Keranjang kosong'], 400);
+        if ($order) {
+            $order->status = $request->status;
+            $order->save();
+            Cart::where('user_id', Auth::id())->delete();
+
+            return response()->json(['success' => true]);
         }
 
-        // Hitung total berdasarkan shipping method
-        $subtotal = $cartItems->sum('total_price');
-        $discount = $this->calculateDiscount($subtotal);
-        $tax = $this->calculateTax($subtotal);
-        $shippingCost = $this->getShippingCost($validated['shipping_method']);
-        $total = $subtotal - $discount + $tax + $shippingCost;
-
-        // Di sini Anda bisa:
-        // 1. Simpan order ke database
-        // 2. Integrate dengan Midtrans untuk payment
-        // 3. Clear cart setelah berhasil
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Checkout berhasil',
-            'order_data' => [
-                'subtotal' => $subtotal,
-                'discount' => $discount,
-                'tax' => $tax,
-                'shipping_cost' => $shippingCost,
-                'total' => $total,
-                'shipping_info' => $validated
-            ]
-        ]);
+        return response()->json(['error' => 'Order tidak ditemukan'], 404);
     }
+
 
     public function getSnapToken(Request $request)
     {
@@ -133,6 +107,22 @@ class CheckoutController extends Controller
 
             $orderId = 'ORDER-' . time() . '-' . Auth::id();
 
+            $order = Order::create([
+                'user_id' => Auth::id(),
+                'order_id' => $orderId,
+                'status' => 'pending',
+                'total_amount' => $grossAmount,
+                'shipping_method' => $validated['shipping_method'],
+            ]);
+
+            foreach ($cartItems as $item) {
+                OrderItem::create([
+                    'order_id' => $order->id,
+                    'product_id' => $item->product_id,
+                    'quantity' => $item->quantity,
+                    'price' => $item->product->price,
+                ]);
+            }
             // Buat item details untuk produk
             $itemDetails = [];
 

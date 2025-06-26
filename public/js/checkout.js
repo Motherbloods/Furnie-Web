@@ -176,8 +176,28 @@ document.addEventListener("DOMContentLoaded", function () {
 
             if (data.token) {
                 window.snap.pay(data.token, {
-                    onSuccess: function (result) {
+                    onSuccess: async function (result) {
                         console.log("SUKSES", result);
+
+                        try {
+                            await fetch("/checkout/update-status", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRF-TOKEN": document
+                                        .querySelector(
+                                            'meta[name="csrf-token"]'
+                                        )
+                                        .getAttribute("content"),
+                                },
+                                body: JSON.stringify({
+                                    order_id: result.order_id,
+                                    status: "paid",
+                                }),
+                            });
+                        } catch (e) {
+                            console.error("Gagal update status:", e);
+                        }
 
                         Swal.fire({
                             title: "Pembayaran Berhasil!",

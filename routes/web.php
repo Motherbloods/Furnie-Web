@@ -38,6 +38,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/cart/count', [CartController::class, 'getCartCount'])->name('cart.count');
         Route::get('/checkout', [CheckoutController::class, 'checkout'])->name('transaksi.checkout');
         Route::post('/checkout/token', [CheckoutController::class, 'getSnapToken']);
+        Route::post('/checkout/update-status', [CheckoutController::class, 'updateStatus']);
+
 
     });
 
