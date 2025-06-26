@@ -6,44 +6,6 @@
     <!-- Product Detail Component -->
     <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         <div class="max-w-7xl mx-auto px-4 py-8">
-            @php
-                // Sample product data - replace with actual data from database
-                $product = [
-                    'id' => 1,
-                    'name' => 'Meja Kerja Modern Premium',
-                    'category' => 'meja',
-                    'price' => 1500000,
-                    'original_price' => 2000000,
-                    'images' => [
-                        'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=600&fit=crop',
-                        'https://images.unsplash.com/photo-1549497538-303791108f95?w=600&h=600&fit=crop',
-                        'https://images.unsplash.com/photo-1549497538-303791108f95?w=600&h=600&fit=crop&sat=-100',
-                        'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=600&fit=crop&sat=-50',
-                    ],
-                    'rating' => 4.8,
-                    'reviews' => 124,
-                    'discount' => 25,
-                    'stock' => 15,
-                    'description' =>
-                        'Meja kerja modern dengan desain minimalis yang cocok untuk ruang kerja Anda. Terbuat dari bahan berkualitas tinggi dengan finishing yang elegan. Dilengkapi dengan laci penyimpanan dan kabel management yang rapi.',
-                    'specifications' => [
-                        'Material' => 'Kayu Oak Premium',
-                        'Dimensi' => '120 x 60 x 75 cm',
-                        'Berat' => '25 kg',
-                        'Warna' => 'Natural Wood',
-                        'Garansi' => '2 Tahun',
-                        'Assembly' => 'Required',
-                    ],
-                    'features' => [
-                        'Desain minimalis dan modern',
-                        'Laci penyimpanan tersembunyi',
-                        'Cable management system',
-                        'Permukaan anti-gores',
-                        'Kaki meja adjustable',
-                        'Eco-friendly material',
-                    ],
-                ];
-            @endphp
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
                 <!-- Product Images -->
@@ -544,54 +506,6 @@
         <h2 class="text-2xl font-bold text-slate-900 mb-8">Produk Serupa</h2>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            @php
-                $relatedProducts = [
-                    [
-                        'id' => 11,
-                        'name' => 'Meja Kerja Klasik',
-                        'price' => 1200000,
-                        'original_price' => 1500000,
-                        'image' => 'https://images.unsplash.com/photo-1549497538-303791108f95?w=400&h=300&fit=crop',
-                        'rating' => 4.6,
-                        'reviews' => 89,
-                        'discount' => 20,
-                    ],
-                    [
-                        'id' => 12,
-                        'name' => 'Meja Kerja Industrial',
-                        'price' => 1800000,
-                        'original_price' => null,
-                        'image' =>
-                            'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=300&fit=crop&sat=-30',
-                        'rating' => 4.7,
-                        'reviews' => 156,
-                        'discount' => null,
-                    ],
-                    [
-                        'id' => 13,
-                        'name' => 'Meja Kerja Standing',
-                        'price' => 2200000,
-                        'original_price' => 2500000,
-                        'image' =>
-                            'https://images.unsplash.com/photo-1549497538-303791108f95?w=400&h=300&fit=crop&hue=180',
-                        'rating' => 4.8,
-                        'reviews' => 203,
-                        'discount' => 12,
-                    ],
-                    [
-                        'id' => 14,
-                        'name' => 'Meja Kerja Kompak',
-                        'price' => 980000,
-                        'original_price' => null,
-                        'image' =>
-                            'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=300&fit=crop&hue=60',
-                        'rating' => 4.5,
-                        'reviews' => 67,
-                        'discount' => null,
-                    ],
-                ];
-            @endphp
-
             @foreach ($relatedProducts as $relatedProduct)
                 <div
                     class="group bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/50 shadow-lg 
