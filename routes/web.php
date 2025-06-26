@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SearchProduk;
 use Illuminate\Support\Facades\Route;
@@ -26,6 +27,15 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [ProductController::class, 'index'])->name('dashboard');
         Route::get('/search', [SearchProduk::class, 'index'])->name('search');
         Route::get('/product-detail/{id}', [ProductController::class, 'show'])->name('product.show');
+        Route::get('/transaksi', function () {
+            return view('transaksi.pesanan-saya');
+        });
+        Route::get('/keranjang', [CartController::class, 'index'])->name('cart.index');
+        Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
+        Route::put('/cart/{cart}', [CartController::class, 'update'])->name('cart.update');
+        Route::delete('/cart/{cart}', [CartController::class, 'destroy'])->name('cart.destroy');
+        Route::get('/cart/count', [CartController::class, 'getCartCount'])->name('cart.count');
+        Route::get('/checkout', [CartController::class, 'checkout'])->name('transaksi.checkout');
     });
 
     // // Route untuk role:seller
