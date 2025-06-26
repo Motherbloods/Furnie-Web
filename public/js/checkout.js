@@ -193,6 +193,8 @@ document.addEventListener("DOMContentLoaded", function () {
                                 body: JSON.stringify({
                                     order_id: result.order_id,
                                     status: "paid",
+                                    payment_type:
+                                        result.payment_type || "midtrans",
                                 }),
                             });
                         } catch (e) {

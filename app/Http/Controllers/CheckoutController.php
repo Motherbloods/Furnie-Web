@@ -51,21 +51,36 @@ class CheckoutController extends Controller
         $request->validate([
             'order_id' => 'required|string',
             'status' => 'required|in:paid,cancelled',
+            'payment_type' => 'nullable|string',
         ]);
 
         $order = Order::where('order_id', $request->order_id)->first();
 
-        if ($order) {
-            $order->status = $request->status;
-            $order->save();
-            Cart::where('user_id', Auth::id())->delete();
-
-            return response()->json(['success' => true]);
+        if (!$order) {
+            return response()->json(['error' => 'Order tidak ditemukan'], 404);
         }
 
-        return response()->json(['error' => 'Order tidak ditemukan'], 404);
-    }
+        if ($request->status === 'paid') {
+            $order->status = 'paid';
+            $order->order_status = 'diproses';
+            $order->payment_type = $request->payment_type ?? $order->payment_type;
+            $order->paid_at = now();
 
+            // Hapus keranjang
+            Cart::where('user_id', $order->user_id)->delete();
+        }
+
+        if ($request->status === 'cancelled') {
+            $order->status = 'canceled';
+            $order->order_status = 'dibatalkan';
+            $order->payment_type =
+                $order->canceled_at = now();
+        }
+
+        $order->save();
+
+        return response()->json(['success' => true]);
+    }
 
     public function getSnapToken(Request $request)
     {
@@ -86,33 +101,46 @@ class CheckoutController extends Controller
                 'postal_code' => 'required|string|max:10',
             ]);
 
-            // Set konfigurasi midtrans
+            // Set konfigurasi Midtrans
             Config::$serverKey = env('MIDTRANS_SERVER_KEY');
-            Config::$isProduction = false; // true untuk production
+            Config::$isProduction = false;
             Config::$isSanitized = true;
             Config::$is3ds = true;
 
+            // Ambil keranjang
             $cartItems = Cart::with('product')->where('user_id', Auth::id())->get();
 
             if ($cartItems->isEmpty()) {
                 return response()->json(['error' => 'Keranjang kosong'], 400);
             }
 
-            // Hitung ulang total dengan perhitungan yang benar
+            // Hitung ulang total
             $subtotal = $cartItems->sum('total_price');
             $discount = $this->calculateDiscount($subtotal);
             $tax = $this->calculateTax($subtotal);
             $shippingCost = $this->getShippingCost($validated['shipping_method']);
             $grossAmount = $subtotal - $discount + $tax + $shippingCost;
 
+            // Gabungkan alamat lengkap
+            $fullAddress = "{$validated['full_name']}, {$validated['phone']}, {$validated['address']}, {$validated['city']}, {$validated['province']}, {$validated['postal_code']}";
+
+            // Buat Order ID unik
             $orderId = 'ORDER-' . time() . '-' . Auth::id();
 
+            // Simpan order ke database
             $order = Order::create([
                 'user_id' => Auth::id(),
                 'order_id' => $orderId,
                 'status' => 'pending',
+                'order_status' => 'menunggu_konfirmasi',
                 'total_amount' => $grossAmount,
+                'shipping_cost' => $shippingCost,
                 'shipping_method' => $validated['shipping_method'],
+                'shipping_address' => $fullAddress,
+
+                'payment_type' => null,
+                'payment_token' => null,
+                'notes' => null,
             ]);
 
             foreach ($cartItems as $item) {
@@ -199,6 +227,8 @@ class CheckoutController extends Controller
             ];
 
             $snapToken = Snap::getSnapToken($params);
+            $order->payment_token = $snapToken;
+            $order->save();
 
             return response()->json([
                 'success' => true,

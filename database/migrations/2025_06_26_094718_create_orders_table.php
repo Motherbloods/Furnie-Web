@@ -14,42 +14,43 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('user_id');
 
-            // ID unik dari Midtrans
             $table->string('order_id')->unique();
 
-            // Status dari Midtrans
             $table->enum('status', ['pending', 'paid', 'expired', 'canceled'])->default('pending');
 
-            // Status internal order
-            $table->enum('order_status', ['menunggu_konfirmasi', 'diproses', 'selesai', 'dibatalkan'])->default('menunggu_konfirmasi');
+            // Status proses pesanan internal
+            $table->enum('order_status', ['menunggu_konfirmasi', 'diproses', "dikirim", 'selesai', 'dibatalkan'])->default('menunggu_konfirmasi');
 
-            // Data total belanja
+            // Total belanja & ongkir
             $table->decimal('total_amount', 12, 2);
-            $table->decimal('shipping_cost', 12, 2)->default(0); // meskipun belum ekspedisi, bisa jadi pickup ada biaya
+            $table->decimal('shipping_cost', 12, 2)->default(0);
 
-            // Metode pengambilan/pengiriman
-            $table->string('shipping_method'); // contoh: "ambil di tempat", "antar manual"
+            // Metode pengiriman atau pengambilan
+            $table->string('shipping_method');
 
-            // Alamat kirim atau keterangan tempat ambil
+            // Alamat kirim
             $table->text('shipping_address');
 
-            // Data pembayaran
-            $table->string('payment_type')->nullable(); // e.g. "bank_transfer", "gopay"
-            $table->string('payment_token')->nullable(); // Snap Token (opsional)
+            // Informasi pembayaran
+            $table->string('payment_type')->nullable();
+            $table->string('payment_token')->nullable();
 
-            // Opsional
-            $table->text('notes')->nullable(); // Catatan pembeli
+            // Catatan pembeli
+            $table->text('notes')->nullable();
 
-            // Waktu-waktu penting
+            // Timestamp status
             $table->timestamp('paid_at')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamp('canceled_at')->nullable();
+
+            // Alasan pembatalan (jika ada)
             $table->text('cancel_reason')->nullable();
 
             $table->timestamps();
+
+            // Foreign Key
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
-
-
     }
 
     /**
