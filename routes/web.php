@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SearchProduk;
 use Illuminate\Support\Facades\Route;
@@ -35,7 +36,9 @@ Route::middleware('auth')->group(function () {
         Route::put('/cart/{cart}', [CartController::class, 'update'])->name('cart.update');
         Route::delete('/cart/{cart}', [CartController::class, 'destroy'])->name('cart.destroy');
         Route::get('/cart/count', [CartController::class, 'getCartCount'])->name('cart.count');
-        Route::get('/checkout', [CartController::class, 'checkout'])->name('transaksi.checkout');
+        Route::get('/checkout', [CheckoutController::class, 'checkout'])->name('transaksi.checkout');
+        Route::post('/checkout/token', [CheckoutController::class, 'getSnapToken']);
+
     });
 
     // // Route untuk role:seller
