@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SearchProduk;
 use Illuminate\Support\Facades\Route;
 
 
@@ -21,16 +23,14 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     // Route untuk role:user
     Route::middleware(['role:user'])->group(function () {
-        Route::get('/', function () {
-            return view('layouts.dashboard');
-        })->name('user.dashboard');
+        Route::get('/', [ProductController::class, 'index'])->name('dashboard');
+        Route::get('/search', [SearchProduk::class, 'index'])->name('search');
+        Route::get('/product-detail/{id}', [ProductController::class, 'show'])->name('product.show');
     });
 
     // // Route untuk role:seller
     Route::middleware(['role:seller'])->group(function () {
-        Route::get('/seller/dashboard', function () {
-            return view('dashboard-seller');
-        })->name('seller.dashboard');
+        Route::get('/seller/dashboard', [ProductController::class, 'dashboardSeller']);
     });
 
     // Logout route (semua role bisa akses)
