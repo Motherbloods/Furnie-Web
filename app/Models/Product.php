@@ -39,6 +39,11 @@ class Product extends Model
         return $this->belongsTo(Seller::class);
     }
 
+    public function carts()
+    {
+        return $this->hasMany(Cart::class);
+    }
+
     /**
      * Get the user who owns this product through seller
      */
