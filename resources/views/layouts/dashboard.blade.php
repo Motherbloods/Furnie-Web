@@ -58,5 +58,6 @@
         <!-- Product List Component - Full Width -->
         @include('components.product-list')
     </div>
+    <script src="{{ asset('js/category-ajax.js') }}"></script>
 
 @endsection
