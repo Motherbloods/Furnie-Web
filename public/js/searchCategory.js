@@ -340,6 +340,89 @@ document.addEventListener("DOMContentLoaded", function () {
         );
     }
 
+    function handleBuyNow(productId, price) {
+        console.log("Buy Now clicked for product:", productId, "Price:", price);
+
+        // Show loading state on button
+        const buyButton = event.target;
+        const originalText = buyButton.innerHTML;
+        buyButton.disabled = true;
+        buyButton.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Memproses...
+    `;
+
+        // Prepare data for purchase
+        const purchaseData = {
+            product_id: productId,
+            quantity: 1,
+            price: parseFloat(price),
+        };
+
+        // Get CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]');
+        const headers = {
+            "Content-Type": "application/json",
+            "X-Requested-With": "XMLHttpRequest",
+        };
+
+        if (csrfToken) {
+            headers["X-CSRF-TOKEN"] = csrfToken.getAttribute("content");
+        }
+
+        // Send POST request to checkout-langsung endpoint
+        fetch("/checkout-langsung", {
+            method: "POST",
+            headers: headers,
+            body: JSON.stringify(purchaseData),
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then((data) => {
+                console.log("Purchase response:", data);
+                if (data.success) {
+                    // Show success message
+                    showSuccessMessage("Produk siap untuk checkout!");
+
+                    // Redirect to checkout page
+                    if (data.redirect_url) {
+                        setTimeout(() => {
+                            window.location.href = data.redirect_url;
+                        }, 1500);
+                    } else {
+                        // Fallback redirect
+                        setTimeout(() => {
+                            window.location.href = "/checkout-direct";
+                        }, 1500);
+                    }
+                } else {
+                    throw new Error(
+                        data.message ||
+                            "Terjadi kesalahan saat memproses pembelian"
+                    );
+                }
+            })
+            .catch((error) => {
+                console.error("Purchase error:", error);
+                showError(
+                    "Terjadi kesalahan saat memproses pembelian: " +
+                        error.message
+                );
+            })
+            .finally(() => {
+                // Restore button state
+                buyButton.disabled = false;
+                buyButton.innerHTML = originalText;
+            });
+    }
+
     // === Utility Functions ===
 
     function renderProducts(products) {
@@ -357,6 +440,12 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
         const productId = product.id || product._id || "unknown";
+        const price = product.price || product.harga || 0;
+        const imagePath = product.image
+            ? product.image.startsWith("https")
+                ? product.image
+                : `/storage/${product.image}`
+            : "https://static.vecteezy.com/system/resources/previews/004/141/669/original/no-photo-or-blank-image-icon-loading-images-or-missing-image-mark-image-not-available-or-image-coming-soon-sign-simple-nature-silhouette-in-frame-isolated-illustration-vector.jpg";
 
         return `
         <a href="/product-detail/${productId}" class="block">
@@ -366,9 +455,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 <!-- Product Image -->
                 <div class="relative overflow-hidden">
-                    <img src="${
-                        product.image || "https://via.placeholder.com/300x200"
-                    }" 
+                    <img src="${imagePath}" 
                          alt="${product.name || product.nama}"
                          class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                          loading="lazy">
@@ -380,28 +467,6 @@ document.addEventListener("DOMContentLoaded", function () {
                                 product.kategori || product.category || "umum"
                             )}
                         </span>
-                    </div>
-
-                    <!-- Quick Action Buttons -->
-                    <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                        <div class="flex flex-col space-y-2">
-                            <button class="p-2 bg-white/90 rounded-full shadow-lg hover:bg-white transition-colors duration-200" onclick="event.preventDefault()">
-                                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
-                                    </path>
-                                </svg>
-                            </button>
-                            <button class="p-2 bg-white/90 rounded-full shadow-lg hover:bg-white transition-colors duration-200" onclick="event.preventDefault()">
-                                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
-                                    </path>
-                                </svg>
-                            </button>
-                        </div>
                     </div>
                 </div>
 
@@ -434,10 +499,12 @@ document.addEventListener("DOMContentLoaded", function () {
                                 Rp ${formattedPrice}
                             </span>
                         </div>
-                        <button class="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white 
-                                     rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 
-                                     shadow-md hover:shadow-lg text-sm font-medium
-                                     transform hover:scale-105 active:scale-95" onclick="event.preventDefault()">
+                        <button 
+                            class="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white 
+                                   rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 
+                                   shadow-md hover:shadow-lg text-sm font-medium
+                                   transform hover:scale-105 active:scale-95" 
+                            onclick="event.preventDefault(); event.stopPropagation(); handleBuyNow('${productId}', ${price})">
                             <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                     d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 2.5M7 13v6a2 2 0 002 2h6a2 2 0 002-2v-6">
@@ -555,10 +622,52 @@ document.addEventListener("DOMContentLoaded", function () {
         }, 5000);
     }
 
+    function showSuccessMessage(message) {
+        const successDiv = document.createElement("div");
+        successDiv.id = "success-message";
+        successDiv.className =
+            "bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl mb-4 mx-4 lg:mx-8";
+
+        successDiv.innerHTML = `
+            <div class="flex">
+                <div class="flex-shrink-0">
+                    <svg class="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium">${message}</p>
+                </div>
+                <div class="ml-auto pl-3">
+                    <button onclick="this.parentElement.parentElement.parentElement.remove()" class="text-green-400 hover:text-green-600">
+                        <span class="sr-only">Dismiss</span>
+                        <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        if (productListSection) {
+            productListSection.insertBefore(successDiv, productsGrid);
+        }
+
+        setTimeout(() => {
+            if (successDiv && successDiv.parentNode) {
+                successDiv.remove();
+            }
+        }, 3000);
+    }
+
     function clearErrors() {
         const existingError = document.getElementById("search-error");
         if (existingError) {
             existingError.remove();
+        }
+        const existingSuccess = document.getElementById("success-message");
+        if (existingSuccess) {
+            existingSuccess.remove();
         }
     }
 
@@ -582,6 +691,9 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // === Global Functions ===
+
+    // Make handleBuyNow available globally
+    window.handleBuyNow = handleBuyNow;
 
     // Reset function that can be called from empty state button
     window.resetSearch = function () {
