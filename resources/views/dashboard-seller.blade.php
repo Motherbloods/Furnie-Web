@@ -46,9 +46,7 @@
                 <div>
                     <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Total Produk</p>
                     <p class="text-3xl font-bold text-gray-900 mt-2">{{ $products->count() }}</p>
-                    <p class="text-sm text-green-600 mt-1">
-                        <i class="fas fa-arrow-up mr-1"></i>+12% dari bulan lalu
-                    </p>
+
                 </div>
                 <div class="bg-gradient-to-br from-blue-500 to-blue-600 p-4 rounded-2xl shadow-lg">
                     <i class="fas fa-box text-white text-2xl"></i>
@@ -70,9 +68,7 @@
                             <i class="fas fa-star text-sm"></i>
                         </div>
                     </div>
-                    <p class="text-sm text-green-600 mt-1">
-                        <i class="fas fa-arrow-up mr-1"></i>245 ulasan
-                    </p>
+
                 </div>
                 <div class="bg-gradient-to-br from-yellow-500 to-orange-500 p-4 rounded-2xl shadow-lg">
                     <i class="fas fa-star text-white text-2xl"></i>
@@ -110,14 +106,11 @@
                     <p class="text-gray-600">Kelola semua produk yang Anda jual</p>
                 </div>
                 <div class="flex space-x-3">
-                    <button
-                        class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center">
-                        <i class="fas fa-filter mr-2"></i>Filter
-                    </button>
-                    <button
-                        class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-2 rounded-xl text-sm font-medium transition-all duration-300 transform hover:scale-105 shadow-lg">
+                    <a href="{{ route('seller.product.create') }}"
+                        class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-2 rounded-xl text-sm font-medium transition-all duration-300 transform hover:scale-105 shadow-lg inline-flex items-center">
                         <i class="fas fa-plus mr-2"></i>Tambah Produk
-                    </button>
+                    </a>
+
                 </div>
             </div>
 
@@ -161,11 +154,13 @@
                             </div>
                         </div>
                         <div class="flex space-x-3">
-                            <a href=""
+                            <a href="{{ route('seller.product.edit', $product->id) }}"
                                 class="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium text-center transition-all duration-300 transform hover:scale-105">
                                 <i class="fas fa-edit mr-2"></i>Edit
                             </a>
-                            <form action="" method="POST" class="flex-1">
+
+                            <form action="{{ route('seller.product.destroy', $product->id) }}" method="POST"
+                                class="flex-1">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit"
@@ -193,7 +188,7 @@
 
         <!-- Orders Tab -->
         <div id="orders-tab" class="tab-content p-8 hidden">
-            <div class="flex justify-between items-center mb-8">
+            {{-- <div class="flex justify-between items-center mb-8">
                 <div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-2">Pesanan Saya</h3>
                     <p class="text-gray-600">Kelola semua pesanan yang masuk</p>
@@ -203,8 +198,8 @@
                         class="border border-gray-300 rounded-xl px-4 py-2 text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
                         <option value="">Semua Pesanan</option>
                         <option value="menunggu_konfirmasi">Menunggu Konfirmasi</option>
-                        <option value="diproses">Diproses</option>
-                        <option value="dikirim">Dikirim</option>
+                        <option value="diproses">Perlu Diproses</option>
+                        <option value="dikirim">Perlu Dikirim</option>
                         <option value="selesai">Selesai</option>
                         <option value="canceled">Dibatalkan</option>
                     </select>
@@ -213,7 +208,7 @@
                         <i class="fas fa-download mr-2"></i>Export
                     </button>
                 </div>
-            </div>
+            </div> --}}
 
             <!-- Status Summary Cards -->
             <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
@@ -223,11 +218,11 @@
                 </div>
                 <div class="bg-purple-50 border border-purple-200 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-purple-700">{{ $orderCounts['diproses'] ?? 0 }}</div>
-                    <div class="text-sm text-purple-600">Perlu Diproses</div>
+                    <div class="text-sm text-purple-600">Perlu Diproses dan Perlu Dikirim</div>
                 </div>
                 <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-blue-700">{{ $orderCounts['dikirim'] ?? 0 }}</div>
-                    <div class="text-sm text-blue-600">Perlu Dikirim</div>
+                    <div class="text-sm text-blue-600">Dikirim</div>
                 </div>
                 <div class="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
                     <div class="text-2xl font-bold text-green-700">{{ $orderCounts['selesai'] ?? 0 }}</div>
@@ -275,7 +270,7 @@
                                             'text-purple-800',
                                             'border-purple-200',
                                             'fas fa-cog',
-                                            'Diproses',
+                                            'Perlu Diproses',
                                         ],
                                         'dikirim' => [
                                             'bg-blue-100',
@@ -361,31 +356,35 @@
                             </div>
                             <div class="flex space-x-3">
                                 @if ($order->order_status === 'menunggu_konfirmasi')
-                                    <form action="" method="POST" class="inline">
+                                    <form id="konfirmasiForm" action="{{ route('orders.updateStatus') }}" method="POST"
+                                        class="inline">
                                         @csrf
-                                        @method('PATCH')
-                                        <input type="hidden" name="status" value="diproses">
+                                        @method('POST')
 
-                                        <button
-                                            class="btn-detail px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-2xl font-semibold hover:bg-slate-50 transition-all duration-300 hover:scale-105"
-                                            data-order="{{ $order->order_id }}">
+                                        <input type="hidden" name="order_id" value="{{ $order->order_id }}">
+                                        <input type="hidden" name="is_konfirmasi" value="1">
+
+                                        <button type="submit"
+                                            class="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white rounded-2xl font-semibold hover:bg-slate-50 transition-all duration-300 hover:scale-105">
                                             <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor"
                                                 viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
-                                                </path>
+                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                             </svg>
                                             Konfirmasi
                                         </button>
                                     </form>
                                 @elseif ($order->order_status === 'diproses')
-                                    <form action="" method="POST" class="inline">
+                                    <form id="formKirim" action="/checkout/update-status" method="POST" class="inline"
+                                        id="formKirim">
                                         @csrf
-                                        @method('PATCH')
-                                        <input type="hidden" name="status" value="dikirim">
+                                        @method('POST')
+                                        <input type="hidden" name="order_id" value="{{ $order->order_id }}">
+                                        <input type="hidden" name="is_dikirim" value="1">
+
                                         <button type="submit"
                                             class="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 transform hover:scale-105">
-                                            <i class="fas fa-truck mr-2"></i>Kirim
+                                            <i class="fas fa-truck mr-2"></i>Perlu Diproses dan Dikirim
                                         </button>
                                     </form>
                                 @endif
@@ -426,6 +425,19 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Toast Notification -->
+                    <div id="toast"
+                        class="fixed top-4 right-4 bg-white border border-slate-200 rounded-2xl shadow-lg p-4 transform translate-x-full transition-transform duration-300 z-50">
+                        <div class="flex items-center space-x-3">
+                            <div id="toastIcon" class="w-8 h-8 rounded-full flex items-center justify-center">
+                                <!-- Icon will be set dynamically -->
+                            </div>
+                            <div>
+                                <p id="toastTitle" class="font-semibold text-slate-900"></p>
+                                <p id="toastMessage" class="text-sm text-slate-600"></p>
+                            </div>
+                        </div>
+                    </div>
                 @empty
                     <div class="text-center py-16">
                         <div class="bg-gray-100 rounded-full w-24 h-24 flex items-center justify-center mx-auto mb-6">
@@ -447,11 +459,24 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 
     <script>
+        window.addEventListener('DOMContentLoaded', () => {
+            const savedTab = localStorage.getItem('activeTab');
+            if (savedTab) {
+                const button = document.querySelector(`.tab-button[data-tab="${savedTab}"]`);
+                if (button) button.click(); // ✅ Klik otomatis tab yang terakhir aktif
+            } else {
+                // Optional: jika tidak ada, klik tab pertama secara default
+                document.querySelector('.tab-button')?.click();
+            }
+        });
+
         // Tab functionality
         document.querySelectorAll('.tab-button').forEach(button => {
             button.addEventListener('click', function() {
                 const tabName = this.getAttribute('data-tab');
 
+
+                localStorage.setItem('activeTab', tabName);
                 // Remove active class from all buttons
                 document.querySelectorAll('.tab-button').forEach(btn => {
                     btn.classList.remove('active', 'border-indigo-500', 'text-indigo-600');
@@ -470,26 +495,6 @@
                 // Show selected tab content
                 document.getElementById(tabName + '-tab').classList.remove('hidden');
             });
-        });
-
-        // Filter functionality for orders
-        document.getElementById('statusFilter').addEventListener('change', function() {
-            const selectedStatus = this.value;
-            const orderCards = document.querySelectorAll('.order-card');
-
-            orderCards.forEach(card => {
-                console.log(card.getAttribute('data-status'), selectedStatus);
-                if (selectedStatus === '' || card.getAttribute('data-status') === selectedStatus) {
-                    card.style.display = 'block';
-                    // Add fade in animation
-                    card.style.animation = 'fadeIn 0.3s ease-in';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-
-            // Update summary cards based on filter
-            updateSummaryCards(selectedStatus);
         });
 
         function updateSummaryCards(selectedStatus) {
@@ -518,6 +523,104 @@
             }
         `;
         document.head.appendChild(style);
+
+        function handleFormSubmit(formId) {
+            const form = document.getElementById(formId);
+
+            if (!form) return;
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+
+                const formData = new FormData(this);
+                console.log('Form Data:', Object.fromEntries(formData.entries()));
+
+                fetch('/checkout/update-status', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': formData.get('_token'),
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json'
+                        },
+                        body: formData
+                    })
+                    .then(async response => {
+                        let data;
+                        try {
+                            data = await response.json();
+                        } catch (err) {
+                            console.error('Gagal parse JSON:', err);
+                            showToast('error', 'Error', 'Response bukan JSON valid');
+                            return;
+                        }
+
+                        console.log('Response JSON:', data);
+
+                        if (response.ok && data.success) {
+                            showToast('success', 'Success', data.message);
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 500)
+                        } else {
+                            showToast('error', 'Error', data.message || 'Gagal memproses permintaan.');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Errordasd:', error);
+                        showToast('error', 'Error', 'Terjadi kesalahan saat mengirim permintaan.');
+                    });
+            });
+        }
+        handleFormSubmit('konfirmasiForm');
+        handleFormSubmit('formKirim');
+        handleFormSubmit('siapkirim');
+
+        function showToast(type, title, message) {
+            console.log('Showing toast:', type, title, message);
+            const toast = document.getElementById('toast');
+            const toastIcon = document.getElementById('toastIcon');
+            const toastTitle = document.getElementById('toastTitle');
+            const toastMessage = document.getElementById('toastMessage');
+
+            // Set icon and colors based on type
+            const types = {
+                success: {
+                    icon: `<svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+                               </svg>`,
+                    bgColor: 'bg-green-500'
+                },
+                error: {
+                    icon: `<svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                               </svg>`,
+                    bgColor: 'bg-red-500'
+                },
+                info: {
+                    icon: `<svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                               </svg>`,
+                    bgColor: 'bg-blue-500'
+                }
+            };
+
+            const config = types[type] || types.info;
+
+            toastIcon.className = `w-8 h-8 rounded-full flex items-center justify-center ${config.bgColor}`;
+            toastIcon.innerHTML = config.icon;
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+
+            // Show toast
+            toast.classList.remove('translate-x-full');
+            toast.classList.add('translate-x-0');
+
+            // Hide toast after 4 seconds
+            setTimeout(() => {
+                toast.classList.remove('translate-x-0');
+                toast.classList.add('translate-x-full');
+            }, 4000);
+        }
     </script>
     <script>
         window.orderData = @json($orders->keyBy('order_id'));

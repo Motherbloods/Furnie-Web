@@ -8,7 +8,7 @@ use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
-
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -47,6 +47,67 @@ class ProductController extends Controller
     }
 
 
+    public function createProduct()
+    {
+        // Ambil semua kategori untuk dropdown
+        $categories = Category::all();
+
+        return view('product.product-create', compact('categories'));
+    }
+
+    public function storeProduct(Request $request)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'kategori' => 'required|string',
+            'description' => 'required|string',
+            'image' => 'required|image|mimes:jpeg,png,jpg|max:5120',
+            'images.*' => 'image|mimes:jpeg,png,jpg|max:5120',
+        ]);
+
+        // Handle image uploads
+        $imagePath = $request->file('image')->store('products', 'public');
+
+        $additionalImages = [];
+        if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $image) {
+                $additionalImages[] = $image->store('products', 'public');
+            }
+        }
+
+        // Prepare specifications and features
+        $specifications = [];
+        if ($request->has('specifications')) {
+            foreach ($request->specifications as $spec) {
+                if (!empty($spec['key']) && !empty($spec['value'])) {
+                    $specifications[$spec['key']] = $spec['value'];
+                }
+            }
+        }
+
+        $features = array_filter($request->features ?? []);
+
+        Product::create([
+            'seller_id' => Auth::user()->seller->user_id,
+            'name' => $request->name,
+            'description' => $request->description,
+            'price' => $request->price,
+            'original_price' => $request->original_price,
+            'discount' => $request->discount,
+            'stock' => $request->stock,
+            'kategori' => $request->kategori,
+            'status' => $request->status ?? 'aktif',
+            'image' => $imagePath,
+            'images' => $additionalImages,
+            'specifications' => $specifications,
+            'features' => $features,
+        ]);
+
+        return redirect()->route('seller.dashboard')->with('success', 'Produk berhasil ditambahkan!');
+    }
+
     public function index(Request $request)
     {
         $kategori = $request->query('category');
@@ -73,7 +134,7 @@ class ProductController extends Controller
 
         // Ambil produk dengan limit
         $products = $productsQuery
-            ->limit($request->ajax() ? 20 : 9)
+            ->limit($request->ajax() ? 12 : 9)
             ->get();
 
         // Jika request via AJAX (atau pakai ?json=true), kembalikan sebagai JSON
@@ -123,7 +184,7 @@ class ProductController extends Controller
 
         Product::create($data);
 
-        return redirect()->route('products.index')->with('success', 'Produk berhasil ditambahkan.');
+        return redirect()->route('seller.dashboard')->with('success', 'Produk berhasil ditambahkan.');
     }
 
     // Tampilkan detail produk
@@ -143,35 +204,72 @@ class ProductController extends Controller
     // Tampilkan form edit produk
     public function edit(Product $product)
     {
-        $this->authorizeProduct($product);
-        return view('products.edit', compact('product'));
+        // Pastikan produk milik seller yang sedang login
+        if ($product->seller_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $categories = Category::all();
+
+        return view('product.product-edit', compact('product', 'categories'));
     }
 
     // Update data produk
     public function update(Request $request, Product $product)
     {
-        $this->authorizeProduct($product);
-
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'kategori' => 'required|in:meja,kursi,lemari,kasur,sofa,rak,dekorasi',
-            'description' => 'nullable|string',
-            'price' => 'required|numeric',
-            'stock' => 'required|integer',
-            'status' => 'required|in:aktif,non-aktif',
-            'image' => 'nullable|image|max:2048',
-        ]);
-
-        $data = $request->all();
-
-        if ($request->hasFile('image')) {
-            $data['image'] = $request->file('image')->store('products', 'public');
+        // Pastikan produk milik seller yang sedang login
+        if ($product->seller_id !== Auth::id()) {
+            abort(403, 'Unauthorized action.');
         }
 
-        $product->update($data);
+        // Validasi input
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'price' => 'required|numeric|min:0',
+            'stock' => 'required|integer|min:0',
+            'category_id' => 'required|exists:categories,id',
+            'status' => 'required|in:aktif,non-aktif',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // 10MB max
+        ], [
+            'name.required' => 'Nama produk wajib diisi.',
+            'name.max' => 'Nama produk maksimal 255 karakter.',
+            'description.required' => 'Deskripsi produk wajib diisi.',
+            'price.required' => 'Harga produk wajib diisi.',
+            'price.numeric' => 'Harga harus berupa angka.',
+            'price.min' => 'Harga tidak boleh kurang dari 0.',
+            'stock.required' => 'Stok produk wajib diisi.',
+            'stock.integer' => 'Stok harus berupa angka bulat.',
+            'stock.min' => 'Stok tidak boleh kurang dari 0.',
+            'category_id.required' => 'Kategori produk wajib dipilih.',
+            'category_id.exists' => 'Kategori yang dipilih tidak valid.',
+            'status.required' => 'Status produk wajib dipilih.',
+            'status.in' => 'Status produk tidak valid.',
+            'image.image' => 'File harus berupa gambar.',
+            'image.mimes' => 'Format gambar harus jpeg, png, jpg, atau gif.',
+            'image.max' => 'Ukuran gambar maksimal 10MB.',
+        ]);
 
-        return redirect()->route('products.index')->with('success', 'Produk berhasil diperbarui.');
+        // Handle upload gambar baru
+        if ($request->hasFile('image')) {
+            // Hapus gambar lama jika ada
+            if ($product->image && Storage::disk('public')->exists($product->image)) {
+                Storage::disk('public')->delete($product->image);
+            }
+
+            // Upload gambar baru
+            $imagePath = $request->file('image')->store('products', 'public');
+            $validated['image'] = Storage::url($imagePath);
+        }
+
+        // Update produk
+        $product->update($validated);
+
+        return redirect()
+            ->route('seller.products')
+            ->with('success', 'Produk berhasil diperbarui!');
     }
+
 
     // Hapus produk
     public function destroy(Product $product)
@@ -180,7 +278,7 @@ class ProductController extends Controller
 
         $product->delete();
 
-        return redirect()->route('products.index')->with('success', 'Produk berhasil dihapus.');
+        return redirect()->route('seller.dashboard')->with('success', 'Produk berhasil dihapus.');
     }
 
     // Pastikan hanya pemilik toko yang bisa mengakses produk
