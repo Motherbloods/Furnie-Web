@@ -116,7 +116,7 @@ class Seller extends Model
      */
     public function getActiveProductCountAttribute(): int
     {
-        return $this->products()->where('status', 'active')->count();
+        return $this->products()->where('status', 'aktif')->count();
     }
 
     /**
