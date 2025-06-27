@@ -24,6 +24,7 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     // Route untuk role:user
+    Route::post('/checkout/update-status', [CheckoutController::class, 'updateStatus'])->name('orders.updateStatus');
     Route::middleware(['role:user'])->group(function () {
         Route::get('/', [ProductController::class, 'index'])->name('dashboard');
         Route::get('/search', [SearchProduk::class, 'index'])->name('search');
@@ -35,13 +36,19 @@ Route::middleware('auth')->group(function () {
         Route::delete('/cart/{cart}', [CartController::class, 'destroy'])->name('cart.destroy');
         Route::get('/cart/count', [CartController::class, 'getCartCount'])->name('cart.count');
         Route::get('/checkout', [CheckoutController::class, 'checkout'])->name('transaksi.checkout');
+        Route::post('/checkout-langsung', [CheckoutController::class, 'checkoutLangsung'])->name('transaksi.checkout-langsung');
+        Route::get('/checkout-direct', [CheckoutController::class, 'checkoutDirect'])->name('transaksi.checkout-direct');
         Route::post('/checkout/token', [CheckoutController::class, 'getSnapToken']);
-        Route::post('/checkout/update-status', [CheckoutController::class, 'updateStatus']);
     });
 
     // // Route untuk role:seller
     Route::middleware(['role:seller'])->group(function () {
-        Route::get('/seller/dashboard', [ProductController::class, 'dashboardSeller']);
+        Route::get('/seller/dashboard', [ProductController::class, 'dashboardSeller'])->name('seller.dashboard');
+        Route::get('/product/create', [ProductController::class, 'createProduct'])->name('seller.product.create');
+        Route::post('/product/create', [ProductController::class, 'storeProduct'])->name('seller.product.store');
+        Route::get('/product/{product}/edit', [ProductController::class, 'edit'])->name('seller.product.edit');
+        Route::put('/product/{product}', [ProductController::class, 'update'])->name('seller.product.update');
+        Route::delete('/product/{product}', [ProductController::class, 'destroy'])->name('seller.product.destroy');
     });
 
     // Logout route (semua role bisa akses)

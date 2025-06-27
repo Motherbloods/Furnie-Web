@@ -39,10 +39,7 @@
                                     clip-rule="evenodd"></path>
                             </svg>
                         </div>
-                        <div
-                            class="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-full flex items-center justify-center shadow-sm">
-                            <span class="text-xs text-white font-bold">3</span>
-                        </div>
+
                     </div>
                     @auth
                         <div class="hidden sm:block text-left">
@@ -104,11 +101,9 @@
                                     </div>
                                     <div class="flex-1">
                                         <p class="font-semibold">Keranjang Belanja</p>
-                                        <p class="text-xs text-slate-500">3 items menunggu</p>
+                                        <p class="text-xs text-slate-500">Lihat Keranjang Anda</p>
                                     </div>
                                     <div class="flex items-center space-x-2">
-                                        <span
-                                            class="bg-emerald-100 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full">3</span>
                                         <svg class="w-4 h-4 text-slate-400 group-hover:text-emerald-600 transition-colors"
                                             fill="currentColor" viewBox="0 0 20 20">
                                             <path fill-rule="evenodd"
