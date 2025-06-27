@@ -50,8 +50,9 @@ class CheckoutController extends Controller
     {
         $request->validate([
             'order_id' => 'required|string',
-            'status' => 'required|in:paid,cancelled',
+            'status' => 'nullable|in:paid,cancelled',
             'payment_type' => 'nullable|string',
+            'is_received' => 'nullable|boolean',
         ]);
 
         $order = Order::where('order_id', $request->order_id)->first();
@@ -60,27 +61,36 @@ class CheckoutController extends Controller
             return response()->json(['error' => 'Order tidak ditemukan'], 404);
         }
 
+        // Jika pesanan ditandai sudah diterima
+        if ($request->boolean('is_received')) {
+            $order->order_status = 'selesai';
+            $order->confirmed_at = now();
+            $order->completed_at = now();
+            $order->save();
+
+            return response()->json(['success' => true, 'message' => 'Pesanan dikonfirmasi diterima.']);
+        }
+
+        // Jika status pembayaran
         if ($request->status === 'paid') {
             $order->status = 'paid';
-            $order->order_status = 'diproses';
+            $order->order_status = 'menunggu_konfirmasi';
             $order->payment_type = $request->payment_type ?? $order->payment_type;
             $order->paid_at = now();
-
-            // Hapus keranjang
             Cart::where('user_id', $order->user_id)->delete();
         }
 
         if ($request->status === 'cancelled') {
             $order->status = 'canceled';
             $order->order_status = 'dibatalkan';
-            $order->payment_type =
-                $order->canceled_at = now();
+            $order->canceled_at = now();
         }
 
         $order->save();
 
         return response()->json(['success' => true]);
     }
+
 
     public function getSnapToken(Request $request)
     {
@@ -275,15 +285,20 @@ class CheckoutController extends Controller
         return $subtotal * 0.11;
     }
 
-    /**
-     * Hitung ongkos kirim (contoh logic)
-     */
-    private function calculateShipping($subtotal)
+
+    public function pesananSaya()
     {
-        if ($subtotal >= 10000000) {
-            return 0; // Gratis ongkir untuk pembelian >= 10 juta
-        }
-        return 150000; // Ongkir standar 150k
+        $orders = Order::with([
+            'items' => function ($query) {
+                $query->with('product'); // Eager load product untuk setiap item
+            },
+            'user'
+        ])
+            ->where('user_id', Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('transaksi.pesanan-saya', compact('orders'));
     }
 
     /**

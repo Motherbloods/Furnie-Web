@@ -4,16 +4,46 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\Category;
+use App\Models\OrderItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
+
 
 class ProductController extends Controller
 {
     // Tampilkan semua produk milik toko user yang login
     public function dashboardSeller()
     {
-        $products = Product::where('seller_id', Auth::id())->get();
-        return view('dashboard-seller', compact('products'));
+        $sellerId = Auth::id();
+
+        // Get products from this seller
+        $products = Product::where('seller_id', $sellerId)->get();
+
+        // Get order items for products belonging to this seller with related data
+        $orderItems = OrderItem::whereHas('product', function ($query) use ($sellerId) {
+            $query->where('seller_id', $sellerId);
+        })->with(['order.user', 'product'])->get();
+
+        $orders = new EloquentCollection(
+            $orderItems
+                ->pluck('order')
+                ->filter()
+                ->unique('id')
+                ->values()
+        );
+
+        // Sekarang kamu bisa pakai eager load
+        $orders->load(['items.product', 'user']);
+        $orderCounts = [
+            'menunggu_konfirmasi' => $orders->where('order_status', 'menunggu_konfirmasi')->count(),
+            'diproses' => $orders->where('order_status', 'diproses')->count(),
+            'dikirim' => $orders->where('order_status', 'dikirim')->count(),
+            'selesai' => $orders->where('order_status', 'selesai')->count(),
+            'dibatalkan' => $orders->where('order_status', 'dibatalkan')->count(),
+        ];
+
+        return view('dashboard-seller', compact('products', 'orders', 'orderItems', 'orderCounts'));
     }
 
 

@@ -14,21 +14,16 @@ class CartController extends Controller
      */
     public function index()
     {
-        $cartItems = Cart::with(['product', 'product.seller'])
+        $cartItems = Cart::with(relations: ['product', 'product.seller'])
             ->forUser(Auth::id())
             ->get();
 
         $subtotal = $cartItems->sum('total_price');
-        $discount = $this->calculateDiscount($subtotal);
-        $shippingCost = $this->calculateShipping($subtotal);
-        $total = $subtotal - $discount + $shippingCost;
-
+        $tax = $subtotal * 0.11;
+        $total = $subtotal + $tax;
         return view('transaksi.keranjang-saya', compact(
             'cartItems',
             'subtotal',
-            'discount',
-            'shippingCost',
-            'total'
         ));
     }
 

@@ -24,6 +24,7 @@ return new class extends Migration {
             // Total belanja & ongkir
             $table->decimal('total_amount', 12, 2);
             $table->decimal('shipping_cost', 12, 2)->default(0);
+            $table->decimal('tax_cost', 12, 2)->default(0);
 
             // Metode pengiriman atau pengambilan
             $table->string('shipping_method');
@@ -42,6 +43,9 @@ return new class extends Migration {
             $table->timestamp('paid_at')->nullable();
             $table->timestamp('completed_at')->nullable();
             $table->timestamp('canceled_at')->nullable();
+            $table->timestamp('confirmed_at')->nullable();
+            $table->timestamp('processed_at')->nullable();
+            $table->timestamp('dikirim_at')->nullable();
 
             // Alasan pembatalan (jika ada)
             $table->text('cancel_reason')->nullable();

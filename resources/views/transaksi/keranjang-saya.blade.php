@@ -185,18 +185,11 @@
                                 <span class="font-semibold text-slate-900" id="subtotal">Rp
                                     {{ number_format($subtotal, 0, ',', '.') }}</span>
                             </div>
-
-                            <div class="flex justify-between items-center">
-                                <span class="text-slate-600">Diskon</span>
-                                <span class="font-semibold text-emerald-600" id="discount">-Rp
-                                    {{ number_format($discount, 0, ',', '.') }}</span>
-                            </div>
-
                             <div class="border-t border-slate-200/60 pt-4">
                                 <div class="flex justify-between items-center">
                                     <span class="text-lg font-bold text-slate-900">Total</span>
                                     <span class="text-2xl font-bold text-slate-900" id="total">Rp
-                                        {{ number_format($total, 0, ',', '.') }}</span>
+                                        {{ number_format($subtotal, 0, ',', '.') }}</span>
                                 </div>
                             </div>
                         </div>
@@ -227,6 +220,7 @@
     </div>
 
     <script>
+        // Setup CSRF token for AJAX requests
         // Setup CSRF token for AJAX requests
         const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
@@ -305,40 +299,64 @@
         function clearCart() {
             if (!confirm('Apakah Anda yakin ingin mengosongkan keranjang?')) return;
 
-            // Remove all items
-            document.querySelectorAll('.cart-item').forEach(item => {
-                const cartId = item.getAttribute('data-cart-id');
-                removeItem(cartId);
-            });
+            fetch('/cart/clear', {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': csrfToken
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Gagal mengosongkan keranjang');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Terjadi kesalahan');
+                });
         }
 
         // Update order summary
         function updateOrderSummary() {
             // Calculate new totals
             let subtotal = 0;
-            document.querySelectorAll('.cart-item').forEach(item => {
+            const cartItems = document.querySelectorAll('.cart-item');
+
+            cartItems.forEach(item => {
                 const totalText = item.querySelector('.item-total').textContent;
                 const total = parseInt(totalText.replace(/[^\d]/g, ''));
                 subtotal += total;
             });
 
-            // Calculate discount and shipping
-            const discount = subtotal >= 5000000 ? 500000 : 0;
-            const shipping = subtotal >= 10000000 ? 0 : 150000;
-            const total = subtotal - discount + shipping;
+            // Update display - hanya update elemen yang ada
+            const subtotalElement = document.getElementById('subtotal');
+            const totalElement = document.getElementById('total');
 
-            // Update display
-            document.getElementById('subtotal').textContent = `Rp ${subtotal.toLocaleString('id-ID')}`;
-            document.getElementById('discount').textContent = `-Rp ${discount.toLocaleString('id-ID')}`;
-            document.getElementById('shipping').textContent = `Rp ${shipping.toLocaleString('id-ID')}`;
-            document.getElementById('total').textContent = `Rp ${total.toLocaleString('id-ID')}`;
+            if (subtotalElement) {
+                subtotalElement.textContent = `Rp ${subtotal.toLocaleString('id-ID')}`;
+            }
+
+            if (totalElement) {
+                totalElement.textContent = `Rp ${subtotal.toLocaleString('id-ID')}`;
+            }
         }
 
         // Update cart count
         function updateCartCount() {
             const itemCount = document.querySelectorAll('.cart-item').length;
-            document.getElementById('cart-count').textContent = `${itemCount} produk dalam keranjang`;
-            document.getElementById('item-count').textContent = itemCount;
+            const cartCountElement = document.getElementById('cart-count');
+            const itemCountElement = document.getElementById('item-count');
+
+            if (cartCountElement) {
+                cartCountElement.textContent = `${itemCount} produk dalam keranjang`;
+            }
+
+            if (itemCountElement) {
+                itemCountElement.textContent = itemCount;
+            }
         }
 
         // Checkout function

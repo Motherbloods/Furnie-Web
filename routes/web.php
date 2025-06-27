@@ -28,9 +28,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/', [ProductController::class, 'index'])->name('dashboard');
         Route::get('/search', [SearchProduk::class, 'index'])->name('search');
         Route::get('/product-detail/{id}', [ProductController::class, 'show'])->name('product.show');
-        Route::get('/transaksi', function () {
-            return view('transaksi.pesanan-saya');
-        });
+        Route::get('/transaksi', [CheckoutController::class, 'pesananSaya'])->name('transaksi.pesanan-saya');
         Route::get('/keranjang', [CartController::class, 'index'])->name('cart.index');
         Route::post('/cart', [CartController::class, 'store'])->name('cart.store');
         Route::put('/cart/{cart}', [CartController::class, 'update'])->name('cart.update');
@@ -39,8 +37,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/checkout', [CheckoutController::class, 'checkout'])->name('transaksi.checkout');
         Route::post('/checkout/token', [CheckoutController::class, 'getSnapToken']);
         Route::post('/checkout/update-status', [CheckoutController::class, 'updateStatus']);
-
-
     });
 
     // // Route untuk role:seller

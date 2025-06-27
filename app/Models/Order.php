@@ -15,6 +15,7 @@ class Order extends Model
         'order_status',
         'total_amount',
         'shipping_cost',
+        'tax_cost',
         'shipping_method',
         'shipping_address',
         'payment_type',
@@ -23,6 +24,9 @@ class Order extends Model
         'paid_at',
         'completed_at',
         'canceled_at',
+        'confirmed_at',
+        'processed_at',
+        'dikirim_at',
         'cancel_reason',
     ];
 
