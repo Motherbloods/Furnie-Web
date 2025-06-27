@@ -6,43 +6,53 @@
                     hover:-translate-y-1 cursor-pointer">
 
             <!-- Product Image -->
+            @php
+                $defaultImage =
+                    'https://static.vecteezy.com/system/resources/previews/004/141/669/original/no-photo-or-blank-image-icon-loading-images-or-missing-image-mark-image-not-available-or-image-coming-soon-sign-simple-nature-silhouette-in-frame-isolated-illustration-vector.jpg';
+                $firstImage = !empty($product['images'][0])
+                    ? (Str::startsWith($product['images'][0], ['https://'])
+                        ? $product['images'][0]
+                        : asset('http://localhost:8000/storage/' . $product['images'][0]))
+                    : $defaultImage;
+            @endphp
             <div class="relative overflow-hidden">
-                <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}"
+                <<img id="mainImage" src="{{ $firstImage }}" alt="{{ $product['name'] }}"
                     class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
                     loading="lazy">
 
-                <!-- Badge/Tag -->
-                <div class="absolute top-3 left-3">
-                    <span class="bg-blue-600 text-white text-xs font-medium px-2 py-1 rounded-full">
-                        {{ ucfirst($product['kategori']) }}
-                    </span>
-                </div>
-
-                <!-- Quick Action Buttons -->
-                <div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div class="flex flex-col space-y-2">
-                        <button
-                            class="p-2 bg-white/90 rounded-full shadow-lg hover:bg-white transition-colors duration-200">
-                            <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
-                                </path>
-                            </svg>
-                        </button>
-                        <button
-                            class="p-2 bg-white/90 rounded-full shadow-lg hover:bg-white transition-colors duration-200">
-                            <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor"
-                                viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
-                                </path>
-                            </svg>
-                        </button>
+                    <!-- Badge/Tag -->
+                    <div class="absolute top-3 left-3">
+                        <span class="bg-blue-600 text-white text-xs font-medium px-2 py-1 rounded-full">
+                            {{ ucfirst($product['kategori']) }}
+                        </span>
                     </div>
-                </div>
+
+                    <!-- Quick Action Buttons -->
+                    <div
+                        class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div class="flex flex-col space-y-2">
+                            <button
+                                class="p-2 bg-white/90 rounded-full shadow-lg hover:bg-white transition-colors duration-200">
+                                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z">
+                                    </path>
+                                </svg>
+                            </button>
+                            <button
+                                class="p-2 bg-white/90 rounded-full shadow-lg hover:bg-white transition-colors duration-200">
+                                <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor"
+                                    viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z">
+                                    </path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
             </div>
 
             <!-- Product Info -->

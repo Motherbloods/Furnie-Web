@@ -6,6 +6,15 @@
     <!-- Product Detail Component -->
     <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
         <div class="max-w-7xl mx-auto px-4 py-8">
+            @php
+                $defaultImage =
+                    'https://static.vecteezy.com/system/resources/previews/004/141/669/original/no-photo-or-blank-image-icon-loading-images-or-missing-image-mark-image-not-available-or-image-coming-soon-sign-simple-nature-silhouette-in-frame-isolated-illustration-vector.jpg';
+                $firstImage = !empty($product['images'][0])
+                    ? (Str::startsWith($product['images'][0], ['http://', 'https://'])
+                        ? $product['images'][0]
+                        : asset('storage/' . $product['images'][0]))
+                    : $defaultImage;
+            @endphp
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-12">
                 <!-- Product Images -->
@@ -13,7 +22,7 @@
                     <!-- Main Image -->
                     <div
                         class="aspect-square bg-white/60 backdrop-blur-sm rounded-3xl border border-slate-200/50 shadow-lg overflow-hidden">
-                        <img id="mainImage" src="{{ $product['images'][0] }}" alt="{{ $product['name'] }}"
+                        <img id="mainImage" src="{{ $firstImage }}" alt="{{ $product['name'] }}"
                             class="w-full h-full object-cover">
 
                         @if ($product['discount'])
