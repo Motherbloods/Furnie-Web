@@ -25,6 +25,7 @@ class User extends Authenticatable implements FilamentUser
         'phone',
         'password',
         'role',
+        'is_suspended'
     ];
 
     /**
