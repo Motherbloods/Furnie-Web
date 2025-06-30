@@ -112,6 +112,8 @@ class ProductController extends Controller
     {
         $kategori = $request->query('category');
         $query = $request->query('query');
+        $page = $request->query('page', 1);
+        $perPage = 8; // Items per page
 
         // Ambil semua kategori
         $categories = Category::all();
@@ -133,26 +135,50 @@ class ProductController extends Controller
             });
         }
 
-        // Ambil produk dengan limit
+        // Get total count for pagination
+        $totalProducts = $productsQuery->count();
+
+        // Calculate offset
+        $offset = ($page - 1) * $perPage;
+
+        // Get products with pagination
         $products = $productsQuery
-            ->limit($request->ajax() ? 12 : 9)
+            ->offset($offset)
+            ->limit($perPage)
             ->get();
 
-        // Jika request via AJAX (atau pakai ?json=true), kembalikan sebagai JSON
-        if ($request->ajax() || $request->query('json')) {
+        // Calculate if there are more products
+        $hasMore = ($offset + $perPage) < $totalProducts;
+
+        // Jika request via AJAX, kembalikan sebagai JSON
+        if ($request->ajax()) {
             return response()->json([
                 'success' => true,
                 'products' => $products,
                 'category' => $kategori,
                 'query' => $query,
-                'hasMore' => $products->count() >= ($request->ajax() ? 20 : 9), // Simple check
-                'currentPage' => 1,
-                'total' => $productsQuery->count()
+                'hasMore' => $hasMore,
+                'currentPage' => (int) $page,
+                'total' => $totalProducts,
+                'perPage' => $perPage
             ]);
         }
 
+        // Untuk request pertama (non-AJAX), ambil hanya halaman pertama
+        $initialProducts = $productsQuery
+            ->limit($perPage)
+            ->get();
+
+        $initialHasMore = $perPage < $totalProducts;
+
         // Jika bukan AJAX, tampilkan view seperti biasa
-        return view('layouts.dashboard', compact('products', 'categories'));
+        return view('layouts.dashboard', compact('initialProducts', 'categories'))
+            ->with([
+                'hasMore' => $initialHasMore,
+                'currentPage' => 1,
+                'total' => $totalProducts,
+                'products' => $initialProducts
+            ]);
     }
 
 
