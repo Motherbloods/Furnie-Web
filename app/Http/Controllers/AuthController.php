@@ -113,13 +113,22 @@ class AuthController extends Controller
             $request->session()->regenerate();
 
             $user = Auth::user();
+
+            // Cek apakah user di-suspend
+            if (isset($user->is_suspended) && $user->is_suspended) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Akun Anda telah dinonaktifkan. Silakan hubungi admin untuk informasi lebih lanjut.',
+                ])->withInput($request->except('password'));
+            }
+
             // Cek jika seller apakah suspended
-            // if ($user->isSeller() && $user->isSellerSuspended()) {
-            //     Auth::logout();
-            //     return back()->withErrors([
-            //         'email' => 'Akun seller Anda telah dinonaktifkan. Silakan hubungi admin.',
-            //     ])->withInput($request->except('password'));
-            // }
+            if ($user->isSeller() && $user->isSellerSuspended()) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Akun seller Anda telah dinonaktifkan. Silakan hubungi admin.',
+                ])->withInput($request->except('password'));
+            }
 
             // Redirect berdasarkan role
             switch ($user->role) {

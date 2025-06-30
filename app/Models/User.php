@@ -48,6 +48,7 @@ class User extends Authenticatable implements FilamentUser
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_suspended' => 'boolean',
         ];
     }
 
@@ -58,7 +59,7 @@ class User extends Authenticatable implements FilamentUser
      */
     public function canAccessPanel(\Filament\Panel $panel): bool
     {
-        return $this->role === 'admin';
+        return $this->role === 'admin' && !$this->is_suspended;
     }
 
     /**
@@ -89,6 +90,26 @@ class User extends Authenticatable implements FilamentUser
     public function isUser(): bool
     {
         return $this->role === 'user';
+    }
+
+    /**
+     * Check if user is suspended
+     *
+     * @return bool
+     */
+    public function isSuspended(): bool
+    {
+        return $this->is_suspended;
+    }
+
+    /**
+     * Check if user is active (not suspended)
+     *
+     * @return bool
+     */
+    public function isActive(): bool
+    {
+        return !$this->is_suspended;
     }
 
     /**
@@ -187,5 +208,21 @@ class User extends Authenticatable implements FilamentUser
     public function scopeRegularUsers($query)
     {
         return $query->where('role', 'user');
+    }
+
+    /**
+     * Scope to get only active (not suspended) users
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_suspended', false);
+    }
+
+    /**
+     * Scope to get only suspended users
+     */
+    public function scopeSuspended($query)
+    {
+        return $query->where('is_suspended', true);
     }
 }

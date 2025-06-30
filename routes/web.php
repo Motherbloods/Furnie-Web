@@ -22,7 +22,8 @@ Route::middleware('guest')->group(function () {
 
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'check.suspend'])->group(function () {
+
     Route::get('/profile/edit', [AuthController::class, 'showProfileEdit'])->name('profile.edit');
 
     // Update profile
