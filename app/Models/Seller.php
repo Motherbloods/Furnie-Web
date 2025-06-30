@@ -20,6 +20,7 @@ class Seller extends Model
         'store_address',
         'store_description',
         'is_suspended',
+        'rating_toko'
     ];
 
     /**

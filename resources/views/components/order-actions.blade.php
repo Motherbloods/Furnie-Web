@@ -1,6 +1,6 @@
 <div class="flex flex-col sm:flex-row gap-3 justify-end">
     @if ($order->order_status === 'selesai')
-        <button
+        {{-- <button
             class="btn-rate px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-2xl font-semibold shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105">
             <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -8,7 +8,7 @@
                 </path>
             </svg>
             Beri Rating
-        </button>
+        </button> --}}
         <button data-items='@json(
             $orderItems->map(fn($item) => [
                     'product_id' => $item->product_id,

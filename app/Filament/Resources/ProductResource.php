@@ -26,6 +26,7 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\KeyValue;
 use Filament\Tables\Actions\Action;
 use Filament\Notifications\Notification;
+use Illuminate\Support\HtmlString;
 
 class ProductResource extends Resource
 {
@@ -132,15 +133,29 @@ class ProductResource extends Resource
                             ->label('Main Image')
                             ->image()
                             ->directory('products')
-                            ->visibility('public'),
+                            ->visibility('public')
+                            ->hint(function ($state, $record) {
+                                if ($record && $record->image) {
+                                    $url = str_starts_with($record->image, 'storage/')
+                                        ? asset($record->image)
+                                        : asset('storage/' . $record->image);
+                                    return new HtmlString("
+                <div class='mt-2'>
+                    <p class='text-sm text-gray-600 mb-1'>Gambar saat ini:</p>
+                    <img src='{$url}' alt='Main Image' class='w-32 rounded-xl border border-gray-200 shadow'>
+                </div>
+            ");
+                                }
+                                return null;
+                            }),
 
-                        FileUpload::make('images')
-                            ->label('Additional Images')
-                            ->image()
-                            ->multiple()
-                            ->directory('products')
-                            ->visibility('public'),
+                        Textarea::make('images')
+                            ->label('Additional Images (URLs)')
+                            ->helperText('Enter image URLs separated by commas')
+                            ->placeholder('https://example.com/image1.jpg, https://example.com/image2.jpg')
+                            ->rows(3),
                     ]),
+
 
                 Section::make('Product Details')
                     ->schema([
@@ -150,14 +165,12 @@ class ProductResource extends Resource
                             ->addActionLabel('Add specification')
                             ->reorderable(),
 
-                        Repeater::make('features')
-                            ->schema([
-                                TextInput::make('feature')
-                                    ->required(),
-                            ])
-                            ->addActionLabel('Add feature')
-                            ->reorderable()
-                            ->collapsible(),
+                        // Updated features field to handle comma-separated string format
+                        Textarea::make('features')
+                            ->label('Features')
+                            ->helperText('Enter features separated by commas')
+                            ->placeholder('Feature 1, Feature 2, Feature 3')
+                            ->rows(4),
                     ]),
             ]);
     }
@@ -315,6 +328,7 @@ class ProductResource extends Resource
         return [
             'index' => Pages\ListProducts::route('/'),
             'create' => Pages\CreateProduct::route('/create'),
+            'view' => Pages\ViewProduct::route('/{record}'),
             'edit' => Pages\EditProduct::route('/{record}/edit'),
         ];
     }

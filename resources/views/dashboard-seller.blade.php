@@ -31,11 +31,12 @@
                 </div>
             </div>
             <div class="text-right">
-                <button
+                <a href="{{ route('profile.view') }}"
                     class="bg-white/20 backdrop-blur-lg border border-white/30 hover:bg-white/30 px-6 py-3 rounded-xl text-sm font-medium text-white transition-all duration-300 transform hover:scale-105">
                     <i class="fas fa-edit mr-2"></i>Edit Profile
-                </button>
+                </a>
             </div>
+
         </div>
     </div>
 
@@ -59,16 +60,33 @@
                 <div>
                     <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Rating Toko</p>
                     <div class="flex items-center space-x-2 mt-2">
-                        <p class="text-3xl font-bold text-gray-900">4.8</p>
+                        <p class="text-3xl font-bold text-gray-900">
+                            {{ $products->first()?->seller?->rating_toko ?? '0' }}
+                        </p>
                         <div class="flex text-yellow-400">
-                            <i class="fas fa-star text-sm"></i>
-                            <i class="fas fa-star text-sm"></i>
-                            <i class="fas fa-star text-sm"></i>
-                            <i class="fas fa-star text-sm"></i>
-                            <i class="fas fa-star text-sm"></i>
+                            @php
+                                $rating = floatval($products->first()?->seller?->rating_toko ?? 0);
+                                $fullStars = floor($rating); // Bintang penuh
+                                $hasHalfStar = $rating - $fullStars >= 0.5; // Apakah ada setengah bintang
+                                $emptyStars = 5 - $fullStars - ($hasHalfStar ? 1 : 0); // Bintang kosong
+                            @endphp
+
+                            {{-- Bintang penuh --}}
+                            @for ($i = 0; $i < $fullStars; $i++)
+                                <i class="fas fa-star text-sm"></i>
+                            @endfor
+
+                            {{-- Setengah bintang --}}
+                            @if ($hasHalfStar)
+                                <i class="fas fa-star-half-alt text-sm"></i>
+                            @endif
+
+                            {{-- Bintang kosong --}}
+                            @for ($i = 0; $i < $emptyStars; $i++)
+                                <i class="far fa-star text-sm"></i>
+                            @endfor
                         </div>
                     </div>
-
                 </div>
                 <div class="bg-gradient-to-br from-yellow-500 to-orange-500 p-4 rounded-2xl shadow-lg">
                     <i class="fas fa-star text-white text-2xl"></i>
@@ -87,7 +105,7 @@
                     <i class="fas fa-box mr-3 text-lg"></i>Produk Saya
                     <span
                         class="bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full text-xs ml-2">{{ $products->count() }}</span>
-                </button>
+                </button>f
                 <button
                     class="tab-button border-b-3 border-transparent py-6 px-2 text-sm font-semibold text-gray-500 hover:text-gray-700 hover:border-gray-300 flex items-center transition-all duration-200"
                     data-tab="orders">
@@ -116,11 +134,27 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 @forelse ($products as $product)
+                    @php
+
+                        $productRating = floatval($product->rating);
+                        $fullStars = floor($productRating);
+                        $hasHalfStar = $productRating - $fullStars >= 0.5;
+                        $emptyStars = 5 - $fullStars - ($hasHalfStar ? 1 : 0);
+                    @endphp
+
                     <div
                         class="bg-white rounded-2xl p-5 hover:shadow-xl transition-all duration-300 border border-gray-100 group">
                         <div class="relative mb-4">
-                            <img src="{{ $product->image ?? 'https://via.placeholder.com/300x200' }}"
-                                alt="{{ $product->name }}"
+                            @php
+                                $image = $product->image ?? null;
+                                $imageUrl = $image
+                                    ? (str_starts_with($image, 'storage/')
+                                        ? asset($image)
+                                        : asset('storage/' . $image))
+                                    : 'https://via.placeholder.com/300x200';
+                            @endphp
+
+                            <img src="{{ $imageUrl }}" alt="Product Image" alt="{{ $product->name }}"
                                 class="w-full h-48 object-cover rounded-xl group-hover:scale-105 transition-transform duration-300">
                             <div class="absolute top-3 right-3">
                                 @if ($product->stock > 10)
@@ -145,13 +179,19 @@
                             <p class="text-sm text-gray-600">
                                 <i class="fas fa-boxes mr-2"></i>Stok: {{ $product->stock }} unit
                             </p>
-                            <div class="flex text-yellow-400">
-                                <i class="fas fa-star text-xs"></i>
-                                <i class="fas fa-star text-xs"></i>
-                                <i class="fas fa-star text-xs"></i>
-                                <i class="fas fa-star text-xs"></i>
-                                <i class="far fa-star text-xs"></i>
-                            </div>
+                            @for ($i = 0; $i < $fullStars; $i++)
+                                <i class="fas fa-star text-xs text-yellow-400"></i>
+                            @endfor
+
+                            {{-- Setengah bintang --}}
+                            @if ($hasHalfStar)
+                                <i class="fas fa-star-half-alt text-xs text-yellow-400"></i>
+                            @endif
+
+                            {{-- Bintang kosong --}}
+                            @for ($i = 0; $i < $emptyStars; $i++)
+                                <i class="far fa-star text-xs text-yellow-400"></i>
+                            @endfor
                         </div>
                         <div class="flex space-x-3">
                             <a href="{{ route('seller.product.edit', $product->id) }}"

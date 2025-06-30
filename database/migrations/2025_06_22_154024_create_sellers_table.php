@@ -18,6 +18,7 @@ return new class extends Migration {
             $table->text('store_description')->nullable();
             $table->boolean('is_verified')->default(false);
             $table->boolean('is_suspended')->default(false);
+            $table->float('rating_toko', 2)->nullable();
             $table->timestamps();
 
             // Index for better performance

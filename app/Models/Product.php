@@ -44,6 +44,19 @@ class Product extends Model
         return $this->hasMany(Cart::class);
     }
 
+    // Product.php
+    public function ratings()
+    {
+        return $this->hasMany(ProductRating::class);
+    }
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
+
+
+
     /**
      * Get the user who owns this product through seller
      */

@@ -49,6 +49,8 @@ Route::middleware(['auth', 'check.suspend'])->group(function () {
         Route::post('/checkout-langsung', [CheckoutController::class, 'checkoutLangsung'])->name('transaksi.checkout-langsung');
         Route::get('/checkout-direct', [CheckoutController::class, 'checkoutDirect'])->name('transaksi.checkout-direct');
         Route::post('/checkout/token', [CheckoutController::class, 'getSnapToken']);
+
+        Route::post('/orders/{order}/rate', [CartController::class, 'rate'])->name('orders.rate');
     });
 
     // // Route untuk role:seller

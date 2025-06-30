@@ -228,10 +228,19 @@ class ProductController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'price' => 'required|numeric|min:0',
+            'original_price' => 'nullable|numeric|min:0',
             'stock' => 'required|integer|min:0',
-            'category_id' => 'required|exists:categories,id',
-            'status' => 'required|in:aktif,non-aktif',
+            'kategori' => 'required|in:sofa,kursi,meja,lemari,tempat_tidur,dekorasi',
+            'status' => 'required|in:aktif,non-aktif,draft',
+            'discount' => 'nullable|numeric|min:0|max:100',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:10240', // 10MB max
+            'images' => 'nullable|array|max:5',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif|max:10240',
+            'specifications' => 'nullable|array',
+            'specifications.*.key' => 'required_with:specifications.*.value|string|max:255',
+            'specifications.*.value' => 'required_with:specifications.*.key|string|max:255',
+            'features' => 'nullable|array',
+            'features.*' => 'string|max:255',
         ], [
             'name.required' => 'Nama produk wajib diisi.',
             'name.max' => 'Nama produk maksimal 255 karakter.',
@@ -242,32 +251,99 @@ class ProductController extends Controller
             'stock.required' => 'Stok produk wajib diisi.',
             'stock.integer' => 'Stok harus berupa angka bulat.',
             'stock.min' => 'Stok tidak boleh kurang dari 0.',
-            'category_id.required' => 'Kategori produk wajib dipilih.',
-            'category_id.exists' => 'Kategori yang dipilih tidak valid.',
+            'kategori.required' => 'Kategori produk wajib dipilih.',
+            'kategori.in' => 'Kategori yang dipilih tidak valid.',
             'status.required' => 'Status produk wajib dipilih.',
             'status.in' => 'Status produk tidak valid.',
             'image.image' => 'File harus berupa gambar.',
             'image.mimes' => 'Format gambar harus jpeg, png, jpg, atau gif.',
             'image.max' => 'Ukuran gambar maksimal 10MB.',
+            'images.max' => 'Maksimal 5 gambar tambahan.',
+            'images.*.image' => 'File harus berupa gambar.',
+            'images.*.mimes' => 'Format gambar harus jpeg, png, jpg, atau gif.',
+            'images.*.max' => 'Ukuran gambar maksimal 10MB.',
         ]);
 
-        // Handle upload gambar baru
+        // Handle upload gambar utama
         if ($request->hasFile('image')) {
             // Hapus gambar lama jika ada
-            if ($product->image && Storage::disk('public')->exists($product->image)) {
-                Storage::disk('public')->delete($product->image);
+            if ($product->image) {
+                $oldImagePath = str_replace('/storage/', '', $product->image);
+                if (Storage::disk('public')->exists($oldImagePath)) {
+                    Storage::disk('public')->delete($oldImagePath);
+                }
             }
 
             // Upload gambar baru
             $imagePath = $request->file('image')->store('products', 'public');
-            $validated['image'] = Storage::url($imagePath);
+            $validated['image'] = '/storage/' . $imagePath;
+        }
+
+        // Handle upload gambar tambahan
+        if ($request->hasFile('images')) {
+            // Ambil gambar lama yang ada
+            $existingImages = $product->images ? $product->images : [];
+
+            // Upload gambar baru dan tambahkan ke array yang sudah ada
+            $additionalImages = $existingImages;
+            foreach ($request->file('images') as $file) {
+                $imagePath = $file->store('products', 'public');
+                $additionalImages[] = '/storage/' . $imagePath;
+            }
+
+            // Batasi maksimal 5 gambar total
+            if (count($additionalImages) > 5) {
+                $additionalImages = array_slice($additionalImages, 0, 5);
+            }
+
+            $validated['images'] = $additionalImages;
+        }
+
+        // Handle hapus gambar individual
+        if ($request->has('remove_images') && is_array($request->remove_images)) {
+            $existingImages = $product->images ? $product->images : [];
+            $imagesToRemove = $request->remove_images;
+
+            foreach ($imagesToRemove as $imageToRemove) {
+                // Hapus file dari storage
+                $imagePath = str_replace('/storage/', '', $imageToRemove);
+                if (Storage::disk('public')->exists($imagePath)) {
+                    Storage::disk('public')->delete($imagePath);
+                }
+
+                // Hapus dari array
+                $existingImages = array_filter($existingImages, function ($img) use ($imageToRemove) {
+                    return $img !== $imageToRemove;
+                });
+            }
+
+            $validated['images'] = array_values($existingImages);
+        }
+
+        // Handle specifications
+        if ($request->has('specifications')) {
+            $specifications = [];
+            foreach ($request->specifications as $spec) {
+                if (!empty($spec['key']) && !empty($spec['value'])) {
+                    $specifications[$spec['key']] = $spec['value'];
+                }
+            }
+            $validated['specifications'] = $specifications;
+        }
+
+        // Handle features
+        if ($request->has('features')) {
+            $features = array_filter($request->features, function ($feature) {
+                return !empty(trim($feature));
+            });
+            $validated['features'] = array_values($features);
         }
 
         // Update produk
         $product->update($validated);
 
         return redirect()
-            ->route('seller.products')
+            ->route('seller.dashboard') // Changed to match the form action
             ->with('success', 'Produk berhasil diperbarui!');
     }
 

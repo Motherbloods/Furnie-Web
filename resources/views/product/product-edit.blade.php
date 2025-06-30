@@ -86,7 +86,7 @@
                         <select id="status" name="status"
                             class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300"
                             required>
-                            <option value="aktif" {{ old('status', $product->status) == 'akif' ? 'selected' : '' }}>
+                            <option value="aktif" {{ old('status', $product->status) == 'aktif' ? 'selected' : '' }}>
                                 Aktif</option>
                             <option value="non-aktif"
                                 {{ old('status', $product->status) == 'non-aktif' ? 'selected' : '' }}>
@@ -197,15 +197,16 @@
                         Gambar Utama
                     </label>
                     @if ($product->image)
-                        <div class="mb-4">
+                        <div class="mb-4 relative inline-block">
                             <img src="{{ $product->image }}" alt="Current main image"
                                 class="w-32 h-32 object-cover rounded-xl border border-gray-200">
-                            <p class="text-sm text-gray-500 mt-2">Gambar saat ini</p>
+                            <p class="text-sm text-gray-500 mt-2">Gambar utama saat ini</p>
                         </div>
                     @endif
                     <input type="file" id="image" name="image" accept="image/*"
                         class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300">
-                    <p class="text-sm text-gray-500 mt-2">Format: JPG, PNG, JPEG. Maksimal 2MB</p>
+                    <p class="text-sm text-gray-500 mt-2">Format: JPG, PNG, JPEG. Maksimal 2MB. Upload gambar baru akan
+                        mengganti gambar utama.</p>
                     @error('image')
                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -216,18 +217,48 @@
                     <label for="images" class="block text-sm font-semibold text-gray-700 mb-2">
                         Gambar Tambahan
                     </label>
-                    @if ($product->images && count($product->images) > 0)
-                        <div class="grid grid-cols-4 gap-4 mb-4">
-                            @foreach ($product->images as $img)
-                                <img src="{{ $img }}" alt="Additional image"
-                                    class="w-full h-24 object-cover rounded-lg border border-gray-200">
-                            @endforeach
-                        </div>
-                        <p class="text-sm text-gray-500 mb-4">Gambar tambahan saat ini</p>
-                    @endif
+
+                    <!-- Existing Images Container -->
+                    <div id="existing-images-container">
+                        @if ($product->images && count($product->images) > 0)
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                                @foreach ($product->images as $index => $img)
+                                    <div class="relative group existing-image" data-image="{{ $img }}">
+                                        <img src="{{ $img }}" alt="Additional image {{ $index + 1 }}"
+                                            class="w-full h-24 object-cover rounded-lg border border-gray-200">
+                                        <!-- Delete button -->
+                                        <button type="button"
+                                            class="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 delete-image-btn"
+                                            data-image="{{ $img }}" title="Hapus gambar">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- New Images Preview Container -->
+                    <div id="new-images-preview" class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4"
+                        style="display: none;">
+                        <!-- New image previews will be added here -->
+                    </div>
+
+                    <!-- Image Counter -->
+                    <p id="image-counter" class="text-sm text-gray-500 mb-4">
+                        {{ $product->images ? count($product->images) : 0 }}/5 gambar tambahan
+                    </p>
+
+                    <!-- Hidden inputs for images to remove -->
+                    <div id="remove-images-container"></div>
+
                     <input type="file" id="images" name="images[]" accept="image/*" multiple
                         class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300">
-                    <p class="text-sm text-gray-500 mt-2">Pilih beberapa gambar (maksimal 5). Format: JPG, PNG, JPEG</p>
+                    <p id="upload-helper-text" class="text-sm text-gray-500 mt-2">
+                        Pilih gambar untuk ditambahkan (maksimal {{ 5 - ($product->images ? count($product->images) : 0) }}
+                        gambar lagi).
+                        Format: JPG, PNG, JPEG. Gambar baru akan ditambahkan ke koleksi yang sudah ada.
+                    </p>
                     @error('images')
                         <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -331,16 +362,10 @@
                         class="bg-gray-100 text-gray-700 px-6 py-3 rounded-xl font-medium hover:bg-gray-200 transition-colors duration-300">
                         <i class="fas fa-times mr-2"></i>Batal
                     </a>
-                    <div class="flex space-x-4">
-                        <button type="submit" name="action" value="draft"
-                            class="bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105">
-                            <i class="fas fa-save mr-2"></i>Simpan sebagai Draft
-                        </button>
-                        <button type="submit" name="action" value="publish"
-                            class="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg">
-                            <i class="fas fa-check mr-2"></i>Update & Publikasikan
-                        </button>
-                    </div>
+                    <button type="submit"
+                        class="cursor-pointer bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-3 rounded-xl font-medium transition-all duration-300 transform hover:scale-105 shadow-lg">
+                        <i class="fas fa-check mr-2"></i>Update Produk
+                    </button>
                 </div>
             </div>
         </form>
@@ -349,6 +374,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             let specificationIndex = {{ $product->specifications ? count($product->specifications) : 1 }};
+            let newImageCount = 0; // Counter untuk gambar baru yang akan diupload
 
             // Add specification
             document.getElementById('add-specification').addEventListener('click', function() {
@@ -356,21 +382,21 @@
                 const newRow = document.createElement('div');
                 newRow.className = 'grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4 specification-row';
                 newRow.innerHTML = `
-            <input type="text" 
-                   name="specifications[${specificationIndex}][key]" 
-                   class="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300"
-                   placeholder="Nama spesifikasi (contoh: Bahan)">
-            <div class="flex space-x-2">
-                <input type="text" 
-                       name="specifications[${specificationIndex}][value]" 
-                       class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300"
-                       placeholder="Nilai spesifikasi (contoh: Kayu Jati)">
-                <button type="button" 
-                        class="px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors duration-300 remove-specification">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `;
+                <input type="text"
+                       name="specifications[${specificationIndex}][key]"
+                       class="px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300"
+                       placeholder="Nama spesifikasi (contoh: Bahan)">
+                <div class="flex space-x-2">
+                    <input type="text"
+                           name="specifications[${specificationIndex}][value]"
+                           class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300"
+                           placeholder="Nilai spesifikasi (contoh: Kayu Jati)">
+                    <button type="button"
+                            class="px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors duration-300 remove-specification">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
                 container.appendChild(newRow);
                 specificationIndex++;
             });
@@ -391,15 +417,15 @@
                 const newRow = document.createElement('div');
                 newRow.className = 'flex space-x-2 mb-4 feature-row';
                 newRow.innerHTML = `
-            <input type="text" 
-                   name="features[]" 
-                   class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300"
-                   placeholder="Masukkan fitur produk">
-            <button type="button" 
-                    class="px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors duration-300 remove-feature">
-                <i class="fas fa-trash"></i>
-            </button>
-        `;
+                <input type="text"
+                       name="features[]"
+                       class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300"
+                       placeholder="Masukkan fitur produk">
+                <button type="button"
+                        class="px-4 py-3 bg-red-500 text-white rounded-xl hover:bg-red-600 transition-colors duration-300 remove-feature">
+                    <i class="fas fa-trash"></i>
+                </button>
+            `;
                 container.appendChild(newRow);
             });
 
@@ -412,6 +438,120 @@
                     }
                 }
             });
+
+            // Delete existing image
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.delete-image-btn')) {
+                    const button = e.target.closest('.delete-image-btn');
+                    const imageUrl = button.getAttribute('data-image');
+                    const imageContainer = button.closest('.existing-image');
+
+                    // Confirm deletion
+                    if (confirm('Apakah Anda yakin ingin menghapus gambar ini?')) {
+                        // Hide the image container
+                        imageContainer.style.display = 'none';
+
+                        // Add hidden input to mark image for removal
+                        const removeContainer = document.getElementById('remove-images-container');
+                        const hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = 'remove_images[]';
+                        hiddenInput.value = imageUrl;
+                        removeContainer.appendChild(hiddenInput);
+
+                        // Update counter
+                        updateImageCounter();
+                    }
+                }
+            });
+
+            // Preview new images before upload
+            document.getElementById('images').addEventListener('change', function(e) {
+                const files = Array.from(e.target.files);
+                const existingVisibleImages = getVisibleExistingImagesCount();
+                const maxFiles = 5 - existingVisibleImages;
+
+                if (files.length > maxFiles) {
+                    alert(`Maksimal ${maxFiles} gambar lagi yang bisa ditambahkan.`);
+                    e.target.value = '';
+                    return;
+                }
+
+                // Clear previous previews
+                const previewContainer = document.getElementById('new-images-preview');
+                previewContainer.innerHTML = '';
+                newImageCount = 0;
+
+                if (files.length > 0) {
+                    previewContainer.style.display = 'grid';
+
+                    files.forEach((file, index) => {
+                        if (file.type.startsWith('image/')) {
+                            const reader = new FileReader();
+                            reader.onload = function(e) {
+                                const previewDiv = document.createElement('div');
+                                previewDiv.className = 'relative group new-image-preview';
+                                previewDiv.innerHTML = `
+                                        <img src="${e.target.result}" alt="Preview ${index + 1}"
+                                            class="w-full h-24 object-cover rounded-lg border border-gray-200">
+                                        <button type="button"
+                                            class="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200 remove-new-image-btn"
+                                            data-index="${index}" title="Hapus preview">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                        <div class="absolute bottom-1 left-1 bg-blue-500 text-white text-xs px-2 py-1 rounded">
+                                            Baru
+                                        </div>
+                                    `;
+                                previewContainer.appendChild(previewDiv);
+                                newImageCount++;
+                                updateImageCounter();
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+                } else {
+                    previewContainer.style.display = 'none';
+                    updateImageCounter();
+                }
+            });
+
+            // Remove new image preview
+            document.addEventListener('click', function(e) {
+                if (e.target.closest('.remove-new-image-btn')) {
+                    const button = e.target.closest('.remove-new-image-btn');
+                    const previewDiv = button.closest('.new-image-preview');
+                    const fileInput = document.getElementById('images');
+
+                    // Remove preview
+                    previewDiv.remove();
+                    newImageCount--;
+                    updateImageCounter();
+
+                    // Jika tidak ada gambar preview tersisa, sembunyikan container
+                    if (document.querySelectorAll('.new-image-preview').length === 0) {
+                        document.getElementById('new-images-preview').style.display = 'none';
+                    }
+
+                    // Reset input file (opsional, tergantung kebutuhan)
+                    fileInput.value = '';
+                }
+            });
+
+            // Fungsi untuk menghitung jumlah gambar yang masih terlihat (tidak dihapus)
+            function getVisibleExistingImagesCount() {
+                return document.querySelectorAll('.existing-image:not([style*="display: none"])').length;
+            }
+
+            // Fungsi untuk memperbarui tampilan counter gambar jika diperlukan
+            function updateImageCounter() {
+                const totalVisible = getVisibleExistingImagesCount() + newImageCount;
+                const counterText = document.getElementById('image-count-text');
+                if (counterText) {
+                    counterText.textContent = `Total gambar ditampilkan: ${totalVisible} / 5`;
+                }
+            }
+
         });
     </script>
 @endsection

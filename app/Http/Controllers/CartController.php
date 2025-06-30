@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cart;
+use App\Models\Order;
 use App\Models\Product;
+use App\Models\ProductRating;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class CartController extends Controller
 {
@@ -99,6 +102,92 @@ class CartController extends Controller
         $cart->delete();
 
         return response()->json(['success' => true]);
+    }
+
+    public function rate(Request $request, Order $order)
+    {
+        Log::info('Memulai proses rating untuk order ID: ' . $order->order_id);
+        Log::info('Request data:', $request->all());
+
+        $request->validate([
+            'rating' => 'required|numeric|min:1|max:5',
+        ]);
+
+        $user = Auth::user();
+
+        // Pastikan user adalah pemilik order
+        if ($user->id !== $order->user_id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        // Load order items dengan relasi product dan seller sekaligus
+        $order->load('items.product.seller');
+
+        foreach ($order->items as $item) {
+            $product = $item->product;
+
+            Log::info("cek ini product {$product}");
+
+            if (!$product) {
+                Log::warning("Product tidak ditemukan untuk item ID: {$item->id}");
+                continue;
+            }
+
+            // Cek apakah sudah pernah rating produk ini di order ini
+            $alreadyRated = ProductRating::where([
+                'user_id' => $user->id,
+                'product_id' => $product->id,
+                'order_id' => $order->id,
+            ])->exists();
+
+            if ($alreadyRated) {
+                Log::info("User {$user->id} sudah merating product {$product->id} di order {$order->id}");
+                continue;
+            }
+
+            Log::info("Rating product {$product->id} oleh user {$user->id} untuk order {$order->id}");
+
+            // Simpan rating baru
+            ProductRating::create([
+                'user_id' => $user->id,
+                'product_id' => $product->id,
+                'order_id' => $order->id,
+                'rating' => $request->rating,
+            ]);
+
+            Log::info("Rating disimpan untuk product ID {$product->id} oleh user {$user->id}");
+
+            // Update average rating produk
+            $avgProductRating = ProductRating::where('product_id', $product->id)->avg('rating');
+            $product->rating = round($avgProductRating, 1);
+            $product->save();
+
+            // Update rating_toko (average dari semua produk seller)
+            $seller = $product->seller;
+
+            if (!$seller) {
+                Log::error("Seller tidak ditemukan untuk product ID: {$product->id}");
+                continue;
+            }
+
+            Log::info("Seller ditemukan: ID {$seller->id}, Name: {$seller->store_name}");
+
+            // Hitung rata-rata rating dari semua produk seller yang memiliki rating
+            $avgSellerRating = Product::where('seller_id', $seller->id)
+                ->whereNotNull('rating')
+                ->where('rating', '>', 0)
+                ->avg('rating');
+
+            if ($avgSellerRating) {
+                $seller->rating_toko = round($avgSellerRating, 1);
+                $seller->save();
+                Log::info("Rating toko seller ID {$seller->id} diupdate menjadi {$seller->rating_toko}");
+            } else {
+                Log::info("Tidak ada rating untuk produk seller ID {$seller->id}");
+            }
+        }
+
+        return response()->json(['message' => 'Rating saved']);
     }
 
     /**
