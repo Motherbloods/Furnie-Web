@@ -117,7 +117,8 @@ class ProductController extends Controller
         $categories = Category::all();
 
         // Build query untuk produk
-        $productsQuery = Product::latest();
+        $productsQuery = Product::latest()
+            ->where('status', 'aktif');
 
         // Filter berdasarkan kategori jika ada
         if ($kategori) {
