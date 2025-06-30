@@ -76,8 +76,8 @@ class ProductResource extends Resource
 
                         Select::make('status')
                             ->options([
-                                'aktif' => 'Active',
-                                'nonaktif' => 'Inactive',
+                                'aktif' => 'Aktif',
+                                'non-aktif' => 'Non-Aktif',
                                 'pending' => 'Pending Review',
                             ])
                             ->required()
@@ -203,7 +203,7 @@ class ProductResource extends Resource
                 BadgeColumn::make('status')
                     ->colors([
                         'success' => 'aktif',
-                        'danger' => 'nonaktif',
+                        'danger' => 'non-aktif',
                         'warning' => 'pending',
                     ])
                     ->sortable(),
@@ -237,8 +237,8 @@ class ProductResource extends Resource
 
                 SelectFilter::make('status')
                     ->options([
-                        'aktif' => 'Active',
-                        'nonaktif' => 'Inactive',
+                        'aktif' => 'aktif',
+                        'nonaktif' => 'non-aktif',
                         'pending' => 'Pending Review',
                     ]),
 
@@ -264,42 +264,13 @@ class ProductResource extends Resource
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
 
-                Action::make('approve')
-                    ->label('Approve')
-                    ->icon('heroicon-o-check')
-                    ->color('success')
-                    ->visible(fn(Product $record): bool => $record->status === 'pending')
-                    ->action(function (Product $record) {
-                        $record->update(['status' => 'aktif']);
-                        Notification::make()
-                            ->title('Product approved successfully')
-                            ->success()
-                            ->send();
-                    }),
-
-                Action::make('reject')
-                    ->label('Reject')
-                    ->icon('heroicon-o-x-mark')
-                    ->color('danger')
-                    ->visible(fn(Product $record): bool => $record->status === 'pending')
-                    ->requiresConfirmation()
-                    ->modalHeading('Reject Product')
-                    ->modalDescription('Are you sure you want to reject this product? This action will set the status to inactive.')
-                    ->action(function (Product $record) {
-                        $record->update(['status' => 'nonaktif']);
-                        Notification::make()
-                            ->title('Product rejected')
-                            ->success()
-                            ->send();
-                    }),
-
                 Action::make('toggle_status')
                     ->label(fn(Product $record) => $record->status === 'aktif' ? 'Deactivate' : 'Activate')
                     ->icon(fn(Product $record) => $record->status === 'aktif' ? 'heroicon-o-eye-slash' : 'heroicon-o-eye')
                     ->color(fn(Product $record) => $record->status === 'aktif' ? 'danger' : 'success')
-                    ->visible(fn(Product $record): bool => in_array($record->status, ['aktif', 'nonaktif']))
+                    ->visible(fn(Product $record): bool => in_array($record->status, ['aktif', 'non-aktif']))
                     ->action(function (Product $record) {
-                        $newStatus = $record->status === 'aktif' ? 'nonaktif' : 'aktif';
+                        $newStatus = $record->status === 'aktif' ? 'non-aktif' : 'aktif';
                         $record->update(['status' => $newStatus]);
                         Notification::make()
                             ->title("Product {$newStatus}")
