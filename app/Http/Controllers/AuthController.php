@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class AuthController extends Controller
 {
@@ -168,5 +169,136 @@ class AuthController extends Controller
         $request->session()->regenerateToken();
 
         return redirect('/login')->with('success', 'Anda telah berhasil keluar.');
+    }
+
+    public function showProfileEdit()
+    {
+        $user = Auth::user();
+
+        // Load seller relationship if user is a seller
+        if ($user->isSeller()) {
+            $user->load('seller');
+        }
+
+        return view('auth.edit-profile', compact('user'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        // Base validation rules
+        $rules = [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'max:255',
+                Rule::unique('users')->ignore($user->id)
+            ],
+            'phone' => ['nullable', 'string', 'max:20'],
+        ];
+
+        // Add seller validation rules if user is a seller
+        if ($user->isSeller()) {
+            $rules = array_merge($rules, [
+                'store_name' => ['nullable', 'string', 'max:255'],
+                'store_address' => ['nullable', 'string', 'max:1000'],
+                'store_description' => ['nullable', 'string', 'max:2000'],
+            ]);
+        }
+
+        // Add password validation rules if password fields are filled
+        if ($request->filled('current_password') || $request->filled('password')) {
+            $rules = array_merge($rules, [
+                'current_password' => ['required', 'string'],
+                'password' => ['required', 'string', 'min:8', 'confirmed'],
+            ]);
+        }
+
+        // Custom validation messages
+        $messages = [
+            'name.required' => 'Nama lengkap wajib diisi.',
+            'name.max' => 'Nama lengkap maksimal 255 karakter.',
+            'email.required' => 'Email wajib diisi.',
+            'email.email' => 'Format email tidak valid.',
+            'email.unique' => 'Email sudah digunakan oleh pengguna lain.',
+            'phone.max' => 'Nomor telepon maksimal 20 karakter.',
+            'store_name.max' => 'Nama toko maksimal 255 karakter.',
+            'store_address.max' => 'Alamat toko maksimal 1000 karakter.',
+            'store_description.max' => 'Deskripsi toko maksimal 2000 karakter.',
+            'current_password.required' => 'Password saat ini wajib diisi untuk mengubah password.',
+            'password.required' => 'Password baru wajib diisi.',
+            'password.min' => 'Password baru minimal 8 karakter.',
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+        ];
+
+        // Validate the request
+        $validated = $request->validate($rules, $messages);
+
+        try {
+            // Check current password if trying to change password
+            if ($request->filled('current_password')) {
+                if (!Hash::check($request->current_password, $user->password)) {
+                    return back()->withErrors([
+                        'current_password' => 'Password saat ini tidak benar.'
+                    ])->withInput();
+                }
+            }
+
+            // Update user data
+            $userData = [
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'] ?? null,
+            ];
+
+            // Add new password if provided
+            if ($request->filled('password')) {
+                $userData['password'] = Hash::make($validated['password']);
+            }
+
+            $user->update($userData);
+
+            // Update seller data if user is a seller
+            if ($user->isSeller()) {
+                $sellerData = [
+                    'store_name' => $validated['store_name'] ?? null,
+                    'store_address' => $validated['store_address'] ?? null,
+                    'store_description' => $validated['store_description'] ?? null,
+                ];
+
+                // Create or update seller profile
+                if ($user->seller) {
+                    $user->seller->update($sellerData);
+                } else {
+                    // Create new seller profile if doesn't exist
+                    $sellerData['user_id'] = $user->id;
+                    $sellerData['is_verified'] = false;
+                    $sellerData['is_suspended'] = false;
+                    Seller::create($sellerData);
+                }
+            }
+
+            return redirect()->route('profile.view')
+                ->with('success', 'Profile berhasil diperbarui!');
+
+        } catch (\Exception $e) {
+            return back()->withErrors([
+                'error' => 'Terjadi kesalahan saat memperbarui profile. Silakan coba lagi.'
+            ])->withInput();
+        }
+    }
+
+    public function profile()
+    {
+        $user = Auth::user();
+        // Load seller relationship if user is a seller
+        if ($user->isSeller()) {
+            $user->load('seller');
+        }
+
+        return view('auth.profile-page', compact('user'));
     }
 }

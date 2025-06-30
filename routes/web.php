@@ -23,8 +23,17 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    // Route untuk role:user
+    Route::get('/profile/edit', [AuthController::class, 'showProfileEdit'])->name('profile.edit');
+
+    // Update profile
+    Route::put('/profile', [AuthController::class, 'updateProfile'])->name('profile.update');
+
+    // View profile (read-only)
+    Route::get('/profile', [AuthController::class, 'profile'])->name('profile.view');
+
     Route::post('/checkout/update-status', [CheckoutController::class, 'updateStatus'])->name('orders.updateStatus');
+
+    // Route untuk role:user
     Route::middleware(['role:user'])->group(function () {
         Route::get('/', [ProductController::class, 'index'])->name('dashboard');
         Route::get('/search', [SearchProduk::class, 'index'])->name('search');
