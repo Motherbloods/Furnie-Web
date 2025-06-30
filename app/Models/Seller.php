@@ -19,7 +19,6 @@ class Seller extends Model
         'store_name',
         'store_address',
         'store_description',
-        'is_verified',
         'is_suspended',
     ];
 
@@ -31,7 +30,6 @@ class Seller extends Model
     protected function casts(): array
     {
         return [
-            'is_verified' => 'boolean',
             'is_suspended' => 'boolean',
         ];
     }
@@ -63,7 +61,6 @@ class Seller extends Model
             'name' => $this->store_name,
             'address' => $this->store_address,
             'description' => $this->store_description,
-            'is_verified' => $this->is_verified,
             'is_suspended' => $this->is_suspended,
             'user' => $this->user->only(['name', 'email', 'phone']),
         ];
@@ -74,10 +71,10 @@ class Seller extends Model
      *
      * @return bool
      */
-    public function isVerified(): bool
-    {
-        return $this->is_verified;
-    }
+    // public function isVerified(): bool
+    // {
+    //     return $this->is_verified;
+    // }
 
     /**
      * Check if seller is suspended
@@ -94,9 +91,13 @@ class Seller extends Model
      *
      * @return bool
      */
+    // public function isActive(): bool
+    // {
+    //     return $this->is_verified && !$this->is_suspended;
+    // }
     public function isActive(): bool
     {
-        return $this->is_verified && !$this->is_suspended;
+        return !$this->is_suspended;
     }
 
     /**
@@ -119,13 +120,7 @@ class Seller extends Model
         return $this->products()->where('status', 'aktif')->count();
     }
 
-    /**
-     * Scope to get only verified sellers
-     */
-    public function scopeVerified($query)
-    {
-        return $query->where('is_verified', true);
-    }
+
 
     /**
      * Scope to get only active (not suspended) sellers
@@ -135,12 +130,4 @@ class Seller extends Model
         return $query->where('is_suspended', false);
     }
 
-    /**
-     * Scope to get sellers with active status (verified + not suspended)
-     */
-    public function scopeFullyActive($query)
-    {
-        return $query->where('is_verified', true)
-            ->where('is_suspended', false);
-    }
 }

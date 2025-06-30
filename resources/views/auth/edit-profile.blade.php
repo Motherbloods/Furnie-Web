@@ -133,7 +133,7 @@
                                 </div>
                                 Informasi Toko
                             </h2>
-                            @if (Auth::user()->seller && Auth::user()->seller->isVerified())
+                            @if (Auth::user()->seller)
                                 <div class="flex items-center mt-2">
                                     <div class="w-2 h-2 bg-emerald-500 rounded-full mr-2"></div>
                                     <span class="text-sm text-emerald-700 font-medium">Toko Terverifikasi</span>
